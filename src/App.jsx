@@ -12,24 +12,23 @@ const App = () => {
   const { gameState } = useGame();
 
   return (
-    <Container
-      fluid
-      className="p-0"
-      style={{ backgroundColor: "#f0f0f0", minHeight: "100vh" }}
-    >
+    <>
       <TargetCursor
         spinDuration={2}
         hideDefaultCursor={true}
         parallaxOn={true}
       />
+
       <HeaderBar />
 
-      <div className="py-4">
-        {gameState === "initial" && <InitialScreen />}
-        {gameState === "playing" && <GameArena />}
-        {gameState === "IsGameOver" && <GameOver />}
-      </div>
-    </Container>
+      <Container fluid className="p-0" style={{ minHeight: "100vh" }}>
+        <div className="py-4">
+          {gameState === "initial" && <InitialScreen />}
+          {gameState === "playing" && <GameArena />}
+          {gameState === "IsGameOver" && <GameOver />}
+        </div>
+      </Container>
+    </>
   );
 };
 
