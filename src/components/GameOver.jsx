@@ -30,7 +30,7 @@ const GameOver = () => {
       <p>{reason}</p>
 
       <button
-        className="btn btn-primary mt-3"
+        className="btn btn-primary mt-3 cursor-target"
         onClick={() => window.location.reload()}
       >
         Restart Game
