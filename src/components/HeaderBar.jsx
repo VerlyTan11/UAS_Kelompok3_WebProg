@@ -20,6 +20,14 @@ const HeaderBar = () => {
     return "bg-danger";
   };
 
+  // New stat for score preview
+  const lifeSatisfactionBarColor = (value) => {
+    if (value > 80) return "bg-primary";
+    if (value > 50) return "bg-info";
+    if (value > 25) return "bg-warning";
+    return "bg-danger";
+  };
+
   return (
     <div
       className="border border-dark mb-3"
@@ -49,12 +57,12 @@ const HeaderBar = () => {
       {/* Stats */}
       <div className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
         {[
-          { icon: "🍴", val: playerStats.meal },
-          { icon: "🛏️", val: playerStats.sleep },
-          { icon: "😊", val: playerStats.happiness },
-          { icon: "🫧", val: playerStats.cleanliness },
+          { icon: "🍴", val: playerStats.meal, label: "Meal" },
+          { icon: "🛏️", val: playerStats.sleep, label: "Sleep" },
+          { icon: "😊", val: playerStats.happiness, label: "Happiness" },
+          { icon: "🫧", val: playerStats.cleanliness, label: "Cleanliness" },
         ].map((item, i) => (
-          <div key={i} className="d-flex align-items-center">
+          <div key={i} className="d-flex align-items-center" title={item.label}>
             <span className="me-1">{item.icon}</span>
             <div
               className="progress"
@@ -67,6 +75,26 @@ const HeaderBar = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Life Satisfaction Score Preview */}
+      <div className="d-flex justify-content-center align-items-center px-3 py-2">
+        <span className="me-1" title="Life Satisfaction Score">
+          ❤️
+        </span>
+        <strong className="me-2">Life Satisfaction:</strong>
+        <div
+          className="progress flex-grow-1"
+          style={{ height: "10px", maxWidth: "400px" }}
+        >
+          <div
+            className={`progress-bar ${lifeSatisfactionBarColor(
+              playerStats.lifeSatisfaction
+            )}`}
+            style={{ width: `${playerStats.lifeSatisfaction}%` }}
+          />
+        </div>
+        <strong className="ms-2">{playerStats.lifeSatisfaction}%</strong>
       </div>
     </div>
   );

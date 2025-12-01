@@ -1,97 +1,352 @@
-import React from 'react';
-import { useGame } from '../context/useGame';
-import { Button, Card } from 'react-bootstrap';
+import React from "react";
+import { useGame } from "../context/useGame";
+import { Button, Card, ProgressBar } from "react-bootstrap";
+import { activityDefinitions } from "../context/GameConstants";
 
-const SpecificArea = () => {
-    const { moveSpecificLocation, specificLocation, beachAreas, performActivity, moveArea } = useGame();
+// Komponen untuk menampilkan aktivitas yang sedang berlangsung
+const ActivityPanel = ({
+  activityState,
+  fastForwardActivity,
+  startActivity,
+  specificLocation,
+}) => {
+  // FIX: Panggil Hooks di awal, di tingkat atas fungsi komponen.
+  const { currentArea, gameSpecificAreas } = useGame();
 
-    // Menentukan posisi berdasarkan Figure 3
-    const positions = {
-        'Sands Area': { top: '30%', left: '20%' },
-        'Road (for going back)': { top: '50%', left: '45%' },
-        'Shop Area': { top: '70%', left: '25%' },
-        'Hotel': { top: '30%', left: '75%' },
-        'Sea Area': { top: '70%', left: '70%' },
-    };
+  const { name, progress, message, animation, mode } = activityState;
+  const activityName = name?.split(" - ")[1];
 
-    const getAreaStyle = (areaName) => ({
-        ...positions[areaName],
-        position: 'absolute',
-        width: '100px',
-        height: '100px',
-        borderRadius: '50%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        cursor: 'pointer',
-        border: areaName === specificLocation ? '3px solid blue' : '1px solid black',
-        backgroundColor: '#eee',
-        padding: '5px',
-        textAlign: 'center'
-    });
+  // Tombol untuk mengaktifkan Fast Forward (jika mode normal) atau mode normal (jika belum berjalan)
+  const renderActionButtons = () => {
+    if (mode === "normal") {
+      return (
+        <Button
+          variant="warning"
+          className="mt-3 cursor-target"
+          onClick={fastForwardActivity}
+        >
+          Fast Forward (Instant Finish)
+        </Button>
+      );
+    }
+    return null; // Fast Forward Mode diselesaikan instan di GameContext
+  };
 
-    const isNearSandsArea = specificLocation === 'Sands Area'; // Untuk menampilkan tombol aktivitas
+  // Tampilkan tombol Start Normal/Fast Forward saat aktivitas belum berjalan
+  if (!name) {
+    // Mengambil aktivitas yang valid untuk lokasi spesifik saat ini
+    const specificAreaKey = `${currentArea}Area`;
+    const locations = gameSpecificAreas[specificAreaKey]?.locations || {};
+    const activitiesInLocation = locations[specificLocation]?.activities || [];
+
+    // Jika tidak ada aktivitas, tidak perlu menampilkan panel start
+    if (
+      activitiesInLocation.length === 0 ||
+      specificLocation.includes("Exit") ||
+      specificLocation.includes("Road")
+    ) {
+      return null;
+    }
+
+    // Gunakan aktivitas pertama sebagai default untuk ditampilkan di panel
+    const defaultActivityName = activitiesInLocation[0];
+    const defaultActivityKey = `${specificLocation} - ${defaultActivityName}`;
 
     return (
-        <div className="d-flex flex-column flex-grow-1 position-relative" style={{ height: '500px' }}>
-            <div style={{ position: 'relative', flexGrow: 1, borderBottom: '1px solid black' }}>
-                {/* Area Lingkaran */}
-                {Object.keys(positions).map((areaName) => (
-                    <div
-                        key={areaName}
-                        style={getAreaStyle(areaName)}
-                        onClick={() => {
-                            if (areaName === 'Road (for going back)') {
-                                moveArea('Home'); // Kembali ke Home/Main Game Arena
-                            } else {
-                                moveSpecificLocation(areaName);
-                            }
-                        }}
-                        className="shadow-sm"
-                    >
-                        {areaName === 'Road (for going back)' ? (
-                            <span className="text-dark">**Road**<br/>(for going back)</span>
-                        ) : (
-                            <span className="text-dark">**{areaName}**</span>
-                        )}
-
-                        {/* Player Icon di lokasi saat ini */}
-                        {areaName === specificLocation && (
-                            <div style={{ position: 'absolute', top: '-15px', left: '-15px', fontSize: '30px' }}>
-                                🧍
-                            </div>
-                        )}
-
-                         {/* Tombol Aktivitas (Figure 3 - hanya muncul di Sands Area) */}
-                         {areaName === 'Sands Area' && isNearSandsArea && (
-                             <Card className="position-absolute p-2 shadow" style={{ bottom: '110px', right: '-150px', width: '150px', zIndex: 10 }}>
-                                 {beachAreas['Sands Area'].activities.map((activity) => (
-                                     <Button
-                                         key={activity}
-                                         variant="outline-dark"
-                                         size="sm"
-                                         className="mb-1"
-                                         onClick={() => performActivity(activity)}
-                                     >
-                                         {activity}
-                                     </Button>
-                                 ))}
-                             </Card>
-                         )}
-                    </div>
-                ))}
-                
-                {/* Objek tambahan di tengah arena (misal: bola voli, kelapa) */}
-                <span style={{ position: 'absolute', top: '40%', left: '60%', fontSize: '30px' }}>🏐</span>
-                <span style={{ position: 'absolute', top: '70%', left: '45%', fontSize: '30px' }}>🌰</span>
-            </div>
-
-            <div className="text-center py-2 bg-light border-top border-dark">
-                <small>Figure 3. Specific Area Stage</small>
-            </div>
+      <Card
+        className="position-absolute p-3 shadow-lg"
+        style={{
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "350px",
+          zIndex: 200,
+          textAlign: "center",
+        }}
+      >
+        <h5>Aktivitas Siap Dimulai: {defaultActivityName}</h5>
+        <p>Pilih mode untuk memulai.</p>
+        <div className="d-grid gap-2">
+          <Button
+            variant="success"
+            className="cursor-target"
+            onClick={() => startActivity(defaultActivityKey, "normal")}
+          >
+            Start Activity (Normal Mode)
+          </Button>
+          <Button
+            variant="info"
+            className="cursor-target"
+            onClick={() => startActivity(defaultActivityKey, "fastforward")}
+          >
+            Start Activity (Fast Forward Mode)
+          </Button>
         </div>
+      </Card>
     );
+  }
+
+  // Tampilan ketika aktivitas sedang berjalan
+  return (
+    <Card
+      className="position-absolute p-3 shadow-lg"
+      style={{
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: "300px",
+        zIndex: 200,
+        textAlign: "center",
+      }}
+    >
+      <h5 className="mb-3">
+        Activity: {activityName} (
+        {mode === "normal" ? "Normal Mode" : "Fast Forward"})
+      </h5>
+      <div style={{ fontSize: "3rem", marginBottom: "10px" }}>{animation}</div>
+      <p>"{message}"</p>
+
+      {mode === "normal" ? (
+        <>
+          <ProgressBar
+            now={progress}
+            label={`${Math.round(progress)}%`}
+            className="mb-3"
+          />
+          <small className="text-muted">
+            Progress: {activityState.currentTick}/{activityState.totalTicks}{" "}
+            Hours (Real-time update every 5 seconds).
+          </small>
+          {renderActionButtons()}
+        </>
+      ) : (
+        <small className="text-info">
+          Fast Forwarded! Stats applied instantly.
+        </small>
+      )}
+    </Card>
+  );
+};
+
+const SpecificArea = () => {
+  // Destructuring Hooks di tingkat teratas komponen SpecificArea
+  const {
+    moveSpecificLocation,
+    currentArea,
+    specificLocation,
+    gameSpecificAreas,
+    startActivity,
+    activityState,
+    fastForwardActivity,
+    playerItems,
+  } = useGame();
+
+  const specificAreaKey = `${currentArea}Area`; // e.g., 'BeachArea'
+  const areaData = gameSpecificAreas[specificAreaKey] || {};
+  const locations = areaData.locations || {};
+
+  // Menentukan posisi berdasarkan Figure 3 dan penyesuaian untuk area tunggal
+  let positions = {};
+
+  if (currentArea === "Beach") {
+    positions = {
+      "Sands Area": { top: "30%", left: "20%" },
+      "Road (for going back)": { top: "50%", left: "45%" },
+      "Shop Area": { top: "70%", left: "25%" },
+      Hotel: { top: "30%", left: "75%" },
+      "Sea Area": { top: "70%", left: "70%" },
+    };
+  } else if (currentArea === "Home") {
+    positions = {
+      Kitchen: { top: "25%", left: "20%" },
+      Bedroom: { top: "55%", left: "40%" },
+      Bathroom: { top: "25%", left: "60%" },
+      Exit: { top: "80%", left: "50%" },
+    };
+  } else {
+    // FIX: Posisi untuk Temple, Lake, Mountain
+    const activityLocationName = Object.keys(locations).find(
+      (loc) => loc !== "Exit"
+    );
+
+    if (activityLocationName) {
+      positions[activityLocationName] = { top: "30%", left: "30%" }; // Aktivitas di pojok kiri atas
+    }
+    positions["Exit"] = { top: "70%", left: "70%" }; // Exit di pojok kanan bawah
+  }
+
+  const getAreaStyle = (locationName) => ({
+    ...positions[locationName],
+    position: "absolute",
+    width: "100px",
+    height: "100px",
+    borderRadius: "50%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    cursor: "pointer",
+    border:
+      locationName === specificLocation ? "3px solid blue" : "1px solid black",
+    backgroundColor: "#eee",
+    padding: "5px",
+    textAlign: "center",
+    opacity: activityState.name ? 0.5 : 1, // Blur areas when activity is ongoing
+    pointerEvents: activityState.name ? "none" : "auto", // Disable clicks during activity
+  });
+
+  // Ambil daftar aktivitas untuk lokasi spesifik saat ini
+  const currentActivities = locations[specificLocation]?.activities || [];
+
+  // Cek apakah item yang diperlukan tersedia
+  const isActivityAvailable = (activityName) => {
+    const activityKey = `${specificLocation} - ${activityName}`;
+    const definition = activityDefinitions[activityKey];
+    if (!definition || !definition.requiredItems) return true;
+
+    return definition.requiredItems.every((itemReq) =>
+      playerItems.some((item) => item.id === itemReq && item.inInventory)
+    );
+  };
+
+  const handleActivityStart = (activityName, mode) => {
+    const activityKey = `${specificLocation} - ${activityName}`;
+    startActivity(activityKey, mode);
+  };
+
+  // Hanya tampilkan lokasi yang sudah didefinisikan posisinya
+  const displayedLocations = Object.keys(locations).filter(
+    (loc) => positions[loc]
+  );
+
+  return (
+    <div
+      className="d-flex flex-column flex-grow-1 position-relative"
+      style={{ height: "500px" }}
+    >
+      <div style={{ position: "relative", flexGrow: 1 }}>
+        {/* Panel Aktivitas Sedang Berlangsung / Panel Start */}
+        <ActivityPanel
+          activityState={activityState}
+          fastForwardActivity={fastForwardActivity}
+          specificLocation={specificLocation}
+          startActivity={startActivity}
+        />
+
+        {/* Area Lingkaran */}
+        {displayedLocations.map((locationName) => (
+          <div
+            key={locationName}
+            style={getAreaStyle(locationName)}
+            onClick={() => moveSpecificLocation(locationName)}
+            className="shadow-sm cursor-target"
+          >
+            <span className="text-dark">
+              **
+              {locationName
+                .replace(" (for going back)", "")
+                .replace(" Area", "")
+                .replace(" Spot", "")
+                .replace("head", "")}
+              **
+            </span>
+
+            {/* Player Icon di lokasi saat ini */}
+            {locationName === specificLocation && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-15px",
+                  left: "-15px",
+                  fontSize: "30px",
+                }}
+              >
+                🧍
+              </div>
+            )}
+
+            {/* Tombol Aktivitas (Hanya muncul di lokasi spesifik saat ini) */}
+            {locationName === specificLocation &&
+              currentActivities.length > 0 && (
+                <Card
+                  className="position-absolute p-2 shadow"
+                  style={{
+                    bottom: "10px",
+                    right: "10px",
+                    width: "250px",
+                    zIndex: 10,
+                    opacity: activityState.name ? 0.5 : 1, // Blur buttons when activity is ongoing
+                    pointerEvents: activityState.name ? "none" : "auto", // Disable clicks during activity
+                  }}
+                >
+                  <h6>Activities in {locationName}:</h6>
+                  {currentActivities.map((activityName) => {
+                    const activityKey = `${specificLocation} - ${activityName}`;
+                    const isAvailable = isActivityAvailable(activityName);
+                    const definition = activityDefinitions[activityKey] || {};
+
+                    return (
+                      <div
+                        key={activityName}
+                        className="mb-2 border-bottom pb-1"
+                      >
+                        <span className="me-2" style={{ fontWeight: "bold" }}>
+                          {activityName} {definition.animation}
+                        </span>
+                        <div className="d-flex justify-content-between">
+                          <Button
+                            variant={
+                              isAvailable ? "outline-dark" : "outline-secondary"
+                            }
+                            size="sm"
+                            className="cursor-target flex-fill me-1"
+                            onClick={() =>
+                              handleActivityStart(activityName, "normal")
+                            }
+                            disabled={!isAvailable}
+                          >
+                            Normal Mode
+                          </Button>
+                          <Button
+                            variant={
+                              isAvailable
+                                ? "outline-primary"
+                                : "outline-secondary"
+                            }
+                            size="sm"
+                            className="cursor-target flex-fill"
+                            onClick={() =>
+                              handleActivityStart(activityName, "fastforward")
+                            }
+                            disabled={!isAvailable}
+                          >
+                            Fast Forward
+                          </Button>
+                        </div>
+                        {!isAvailable &&
+                          definition.requiredItems.length > 0 && (
+                            <small className="text-danger">
+                              {" "}
+                              (Needs: {definition.requiredItems.join(", ")})
+                            </small>
+                          )}
+                      </div>
+                    );
+                  })}
+                </Card>
+              )}
+          </div>
+        ))}
+      </div>
+
+      <div className="text-center py-2 bg-light border-top border-dark">
+        <small>
+          Figure 3. Specific Area Stage ({currentArea} -{" "}
+          {specificLocation || "No Location"})
+        </small>
+      </div>
+    </div>
+  );
 };
 
 export default SpecificArea;
