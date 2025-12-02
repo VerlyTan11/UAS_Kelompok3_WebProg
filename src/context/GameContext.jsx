@@ -12,6 +12,10 @@ import {
 } from "./GameConstants";
 
 const FAST_FORWARD_FEE = 10000; // Cost to instantly complete an activity
+const TIME_PER_TICK_MS = 60 * 1000; // 1 hour game time jump
+const REAL_TIME_TICK_MS = 3000; // 5 seconds real time for game logic tick
+
+const getInitialTime = () => new Date(2025, 10, 29, 9, 43); // Helper function for initial date
 
 export const GameProvider = ({ children }) => {
   // Game States
@@ -22,19 +26,21 @@ export const GameProvider = ({ children }) => {
   const [currentArea, setCurrentArea] = useState("Home");
   const [specificLocation, setSpecificLocation] = useState(null);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date(2025, 10, 29, 9, 43));
+
+  // Time States
+  const [currentTime, setCurrentTime] = useState(getInitialTime());
 
   // New States for Activities, Modes, and Scoring
   const [activityState, setActivityState] = useState({
     name: null,
-    progress: 0, // 0 to 100
+    progress: 0,
     totalTicks: 0,
     currentTick: 0,
     statChanges: {},
     message: null,
     animation: null,
-    mode: "normal", // 'normal' or 'fastforward'
-    type: "activity", // 'activity' or 'purchase'
+    mode: "normal",
+    type: "activity",
   });
   const [visitedAreas, setVisitedAreas] = useState(new Set(["Home"]));
   const [activitiesPerformed, setActivitiesPerformed] = useState(0);
@@ -65,7 +71,6 @@ export const GameProvider = ({ children }) => {
   };
 
   const calculateFinalScore = useCallback(() => {
-    // 1. Stat Balance (closer to 50 is better, max 100 per stat * 4 = 200 total)
     const stats = [
       playerStats.meal,
       playerStats.sleep,
@@ -78,10 +83,8 @@ export const GameProvider = ({ children }) => {
     }, 0);
     const normalizedBalanceScore = (balanceScore / 200) * 100;
 
-    // 2. Activities Performed (Max 100 if > 20 activities)
     const activityScore = Math.min(100, activitiesPerformed * 5);
 
-    // 3. Items Collected (Max 100)
     const initialUniqueItems = initialItems.length;
     const currentUniqueItems = playerItems.filter(
       (item) => item.inInventory
@@ -89,10 +92,8 @@ export const GameProvider = ({ children }) => {
     const totalPossibleUniqueItems = initialUniqueItems + 3;
     const itemsScore = (currentUniqueItems / totalPossibleUniqueItems) * 100;
 
-    // 4. Variety of Visited Areas (Max 100 if all 5 main areas visited)
     const areaScore = (visitedAreas.size / Object.keys(gameAreas).length) * 100;
 
-    // Weighted Total Score (Max 100)
     const finalLifeSatisfactionScore = Math.round(
       normalizedBalanceScore * scoreMultipliers.statBalanceWeight +
         activityScore * scoreMultipliers.activitiesPerformedWeight +
@@ -102,8 +103,6 @@ export const GameProvider = ({ children }) => {
 
     return Math.min(100, Math.max(0, finalLifeSatisfactionScore));
   }, [playerStats, activitiesPerformed, playerItems, visitedAreas]);
-
-  // --- Game Loop and Core Functions ---
 
   const startGame = (name) => {
     setPlayerName(name);
@@ -117,7 +116,35 @@ export const GameProvider = ({ children }) => {
     setVisitedAreas((prev) => new Set(prev).add(areaName));
   };
 
+  // FIX: Unified directional movement handler
   const moveAreaByDirection = (direction) => {
+    const isActivityOngoing = !!activityState.name;
+    if (isActivityOngoing) return;
+
+    // 1. Specific Area movement
+    if (specificLocation) {
+      const specificAreaKey = `${currentArea}Area`;
+      const currentLocationData =
+        gameSpecificAreas[specificAreaKey]?.locations[specificLocation];
+
+      if (currentLocationData && currentLocationData[direction]) {
+        const nextLocation = currentLocationData[direction];
+
+        // Jika tujuan adalah Exit atau Road (untuk keluar), gunakan moveSpecificLocation
+        if (
+          nextLocation.includes("Exit") ||
+          nextLocation.includes("Road (for going back)")
+        ) {
+          moveSpecificLocation(nextLocation);
+        } else {
+          // Pindah ke lokasi spesifik baru
+          setSpecificLocation(nextLocation);
+        }
+        return;
+      }
+    }
+
+    // 2. Main Area movement
     const nextArea = getNextArea(currentArea, direction);
     if (nextArea) {
       moveArea(nextArea);
@@ -135,7 +162,11 @@ export const GameProvider = ({ children }) => {
   };
 
   const moveSpecificLocation = (locationName) => {
-    if (locationName === "Road (for going back)" || locationName === "Exit") {
+    // FIX: Saat Exit/Road dipanggil melalui klik/keyboard, kembali ke Main Area
+    if (
+      locationName.includes("Road (for going back)") ||
+      locationName.includes("Exit")
+    ) {
       moveArea(currentArea);
       setSpecificLocation(null);
     } else {
@@ -143,22 +174,18 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Activity execution/completion
   const completeActivity = useCallback(
     (activityKey, statChanges, initialMoneyChange) => {
       const definition = activityDefinitions[activityKey];
 
-      // Calculate final stats to apply (excluding money if already applied)
       const finalStatChanges = { ...statChanges };
       if (initialMoneyChange !== undefined) {
         finalStatChanges.money = initialMoneyChange;
       }
 
-      // Apply final stats
       updateStats(finalStatChanges);
       setActivitiesPerformed((prev) => prev + 1);
 
-      // Apply item acquired (if purchase)
       if (definition.type === "purchase" && definition.itemAcquired) {
         const acquiredItem = definition.itemAcquired;
         setPlayerItems((prevItems) => {
@@ -174,7 +201,6 @@ export const GameProvider = ({ children }) => {
         });
       }
 
-      // Reset activity state
       setActivityState({
         name: null,
         progress: 0,
@@ -190,12 +216,10 @@ export const GameProvider = ({ children }) => {
     []
   );
 
-  // Start the activity
   const startActivity = (activityKey, mode = "normal") => {
     if (activityState.name) return;
     const definition = activityDefinitions[activityKey];
 
-    // Check item requirements
     const hasRequiredItems = definition.requiredItems.every((itemReq) =>
       playerItems.some((item) => item.id === itemReq && item.inInventory)
     );
@@ -208,7 +232,6 @@ export const GameProvider = ({ children }) => {
       return;
     }
 
-    // --- Money Logic ---
     let baseMoneyChange = definition.statChanges.money || 0;
     let moneyDeduction = 0;
 
@@ -218,7 +241,6 @@ export const GameProvider = ({ children }) => {
 
     const totalMoneyChange = baseMoneyChange + moneyDeduction;
 
-    // Check overall money requirement
     if (playerStats.money + totalMoneyChange < 0) {
       alert(
         `Not enough money! This action requires ${Math.abs(
@@ -234,50 +256,41 @@ export const GameProvider = ({ children }) => {
       return;
     }
 
-    // Set up the activity state (using base stat changes for progress calculation)
     setActivityState({
       name: activityKey,
       progress: 0,
       totalTicks: definition.duration,
       currentTick: 0,
-      statChanges: definition.statChanges, // Base stats for incremental application
+      statChanges: definition.statChanges,
       message: definition.message,
       animation: definition.animation,
       mode: mode,
       type: definition.type || "activity",
     });
 
-    // --- Immediate Actions ---
     if (mode === "fastforward") {
-      // Apply all stats + total money change instantly
       const finalStatChanges = {
         ...definition.statChanges,
         money: totalMoneyChange,
       };
-
-      // Pass the activity key, the non-money stats for completion, and the total money change
       completeActivity(activityKey, finalStatChanges, totalMoneyChange);
 
       setCurrentTime(
         (prev) =>
-          new Date(prev.getTime() + definition.duration * 60 * 60 * 1000)
+          new Date(prev.getTime() + definition.duration * TIME_PER_TICK_MS)
       );
     } else {
-      // Normal Mode: Deduct/Gain initial money instantly, other stats apply over time.
       if (baseMoneyChange !== 0) {
         updateStats({ money: baseMoneyChange });
       }
     }
   };
 
-  // Handler for Fast Forward button (instant completion for Normal mode activity)
   const fastForwardActivity = () => {
     if (activityState.name && activityState.mode === "normal") {
-      //const definition = activityDefinitions[activityState.name];
       const remainingTicks =
         activityState.totalTicks - activityState.currentTick;
 
-      // Check if money is sufficient for FF fee
       if (playerStats.money - FAST_FORWARD_FEE < 0) {
         alert(
           `Not enough money for Fast Forward Fee: ${FAST_FORWARD_FEE.toLocaleString(
@@ -287,14 +300,11 @@ export const GameProvider = ({ children }) => {
         return;
       }
 
-      // Advance remaining time
-      const timeToAdvance = remainingTicks * 60 * 60 * 1000;
+      const timeToAdvance = remainingTicks * TIME_PER_TICK_MS;
       setCurrentTime((prev) => new Date(prev.getTime() + timeToAdvance));
 
-      // Apply FF Fee instantly
       updateStats({ money: -FAST_FORWARD_FEE });
 
-      // Reset state and count as performed
       setActivitiesPerformed((prev) => prev + 1);
       setActivityState({
         name: null,
@@ -310,15 +320,12 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Use Item (Renamed to activateItem to avoid ESLint Hook rule false positive)
   const activateItem = (itemId) => {
     const item = playerItems.find((i) => i.id === itemId);
     if (!item || !item.usable || !item.inInventory) return;
 
-    // Apply item effects
     updateStats(item.effect);
 
-    // Remove consumable items from inventory
     if (item.type === "consumable") {
       setPlayerItems((prevItems) =>
         prevItems.map((i) =>
@@ -333,9 +340,7 @@ export const GameProvider = ({ children }) => {
   useEffect(() => {
     if (gameState !== "playing" || isGameOver) return;
 
-    // Main Stat Decay/Activity Interval (Runs every 5 seconds)
     const tickInterval = setInterval(() => {
-      // 1. Activity Progress (Normal Mode only)
       setActivityState((prevActivity) => {
         if (prevActivity.name && prevActivity.mode === "normal") {
           const nextTick = prevActivity.currentTick + 1;
@@ -344,11 +349,9 @@ export const GameProvider = ({ children }) => {
             (nextTick / prevActivity.totalTicks) * 100
           );
 
-          // Calculate and apply partial stat changes per tick (EXCLUDING MONEY, which was applied instantly)
           const definition = activityDefinitions[prevActivity.name];
           const partialStatChanges = {};
           for (const stat in definition.statChanges) {
-            // Skip money as it was handled instantly in startActivity
             if (stat === "money") continue;
 
             partialStatChanges[stat] =
@@ -357,7 +360,6 @@ export const GameProvider = ({ children }) => {
           updateStats(partialStatChanges);
 
           if (nextTick >= prevActivity.totalTicks) {
-            // Activity Complete
             setActivitiesPerformed((prev) => prev + 1);
 
             return {
@@ -386,11 +388,12 @@ export const GameProvider = ({ children }) => {
       setPlayerStats((prev) => {
         const updated = {
           ...prev,
-          meal: Math.max(0, prev.meal - 5),
-          sleep: Math.max(0, prev.sleep - 5),
-          happiness: Math.max(0, prev.happiness - 5),
-          cleanliness: Math.max(0, prev.cleanliness - 5),
-          lifeSatisfaction: Math.max(0, prev.lifeSatisfaction - 1),
+          // Decay Rate: -5 per tick (1 hour game time)
+          meal: Math.max(0, prev.meal - 2),
+          sleep: Math.max(0, prev.sleep - 2),
+          happiness: Math.max(0, prev.happiness - 2),
+          cleanliness: Math.max(0, prev.cleanliness - 2),
+          lifeSatisfaction: Math.max(0, prev.lifeSatisfaction - 0.5),
         };
 
         // 3. Check Game Over
@@ -406,9 +409,9 @@ export const GameProvider = ({ children }) => {
         return updated;
       });
 
-      // 4. Advance Time (Always advance by 1 hour)
-      setCurrentTime((prev) => new Date(prev.getTime() + 60 * 60 * 1000));
-    }, 5000); // 5 seconds per tick for decay and normal mode activity progress
+      // 4. Advance Game Time (1 hour)
+      setCurrentTime((prev) => new Date(prev.getTime() + TIME_PER_TICK_MS));
+    }, REAL_TIME_TICK_MS); // 5 seconds for game logic
 
     return () => clearInterval(tickInterval);
   }, [gameState, isGameOver]);

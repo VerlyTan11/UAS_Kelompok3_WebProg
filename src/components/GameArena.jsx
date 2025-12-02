@@ -2,6 +2,89 @@ import React from "react";
 import { useGame } from "../context/useGame";
 import PlayerItems from "./PlayerItems";
 import SpecificArea from "./SpesificArea";
+import { Button } from "react-bootstrap";
+
+// Komponen Kontrol Gerakan Global (On-Screen Arrows)
+const MovementControlsGlobal = () => {
+  const {
+    moveAreaByDirection,
+    specificLocation,
+    currentArea,
+    isGameOver,
+    activityState,
+  } = useGame();
+  const isActivityOngoing = !!activityState.name;
+  const isDisabled = isActivityOngoing;
+
+  if (isGameOver) return null;
+
+  return (
+    <div
+      className="d-flex justify-content-center align-items-center bg-light shadow-lg border border-dark rounded-3 p-2"
+      style={{
+        position: "absolute",
+        bottom: "10px",
+        right: "135px",
+        zIndex: 100,
+      }}
+    >
+      <div className="d-flex flex-column align-items-center">
+        {/* UP */}
+        <Button
+          variant="outline-dark"
+          size="sm"
+          className="mb-1 cursor-target"
+          style={{ borderRadius: "50%", width: "40px", height: "40px" }}
+          onClick={() => moveAreaByDirection("up")}
+          disabled={isDisabled}
+        >
+          <i className="bi bi-caret-up-fill"></i>
+        </Button>
+        <div className="d-flex">
+          {/* LEFT */}
+          <Button
+            variant="outline-dark"
+            size="sm"
+            className="me-1 cursor-target"
+            style={{ borderRadius: "50%", width: "40px", height: "40px" }}
+            onClick={() => moveAreaByDirection("left")}
+            disabled={isDisabled}
+          >
+            <i className="bi bi-caret-left-fill"></i>
+          </Button>
+          {/* HINT */}
+          <span
+            style={{ width: "40px", textAlign: "center", fontSize: "0.7rem" }}
+          >
+            {specificLocation ? specificLocation.split(" ")[0] : currentArea}
+          </span>
+          {/* RIGHT */}
+          <Button
+            variant="outline-dark"
+            size="sm"
+            className="ms-1 cursor-target"
+            style={{ borderRadius: "50%", width: "40px", height: "40px" }}
+            onClick={() => moveAreaByDirection("right")}
+            disabled={isDisabled}
+          >
+            <i className="bi bi-caret-right-fill"></i>
+          </Button>
+        </div>
+        {/* DOWN */}
+        <Button
+          variant="outline-dark"
+          size="sm"
+          className="mt-1 cursor-target"
+          style={{ borderRadius: "50%", width: "40px", height: "40px" }}
+          onClick={() => moveAreaByDirection("down")}
+          disabled={isDisabled}
+        >
+          <i className="bi bi-caret-down-fill"></i>
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const GameArena = () => {
   const {
@@ -17,7 +100,6 @@ const GameArena = () => {
 
   // Jika sudah di area spesifik (e.g., Beach), tampilkan SpecificArea
   if (specificLocation) {
-    // SpecificArea akan menangani tampilan dan logika di dalamnya
     return (
       <div
         className="d-flex"
@@ -34,10 +116,12 @@ const GameArena = () => {
       >
         <SpecificArea />
         <PlayerItems />
+        <MovementControlsGlobal />
       </div>
     );
   }
 
+  // Tampilan Main Game Arena
   const positions = {
     Home: { top: "5%", left: "10%" },
     Beach: { top: "15%", left: "60%" },
@@ -77,10 +161,8 @@ const GameArena = () => {
       return;
     }
 
-    // Pindah ke area lain
-    // Pergerakan antar area utama ditangani oleh moveAreaByDirection (Keyboard/Panah)
     // Klik di area lain di peta diizinkan untuk kemudahan navigasi
-    moveArea(areaName); // <-- moveArea sekarang terdefinisi
+    moveArea(areaName);
   };
 
   // Latar belakang untuk Main Arena
@@ -91,7 +173,7 @@ const GameArena = () => {
     <div
       className="d-flex"
       style={{
-        height: "600px",
+        height: "500px",
         maxWidth: "1000px",
         margin: "0 auto",
         backgroundImage: `url(/${mainArenaBackground})`, // Dynamic background
@@ -163,9 +245,11 @@ const GameArena = () => {
           </div>
         ))}
       </div>
-
       {/* Item Sidebar Kanan */}
       <PlayerItems />
+
+      {/* Tombol Panah Global di kanan bawah Arena */}
+      <MovementControlsGlobal />
     </div>
   );
 };

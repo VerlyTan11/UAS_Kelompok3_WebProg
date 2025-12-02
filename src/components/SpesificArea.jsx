@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useGame } from "../context/useGame";
 import { Button, Card, ProgressBar } from "react-bootstrap";
 import { activityDefinitions } from "../context/GameConstants";
@@ -8,6 +8,9 @@ const ActivityPanel = ({ activityState, fastForwardActivity }) => {
   // Hanya ambil state dari props, karena semua Hooks sudah dipanggil di SpecificArea
   const { name, progress, message, animation, mode } = activityState;
   const activityName = name?.split(" - ")[1];
+
+  // Ambil FF_FEE dari context
+  const { FAST_FORWARD_FEE } = useGame();
 
   // Jika tidak ada aktivitas yang berjalan, return null.
   if (!name) {
@@ -23,7 +26,8 @@ const ActivityPanel = ({ activityState, fastForwardActivity }) => {
           className="mt-3 cursor-target"
           onClick={fastForwardActivity}
         >
-          Fast Forward (Instant Finish)
+          Fast Forward (Instant Finish) (Cost: 💰
+          {FAST_FORWARD_FEE.toLocaleString("id-ID")})
         </Button>
       );
     }
@@ -72,6 +76,79 @@ const ActivityPanel = ({ activityState, fastForwardActivity }) => {
   );
 };
 
+// Komponen Modal Konfirmasi Kustom
+const FastForwardConfirmModal = ({
+  costDetails,
+  onConfirm,
+  onCancel,
+  activityName,
+  activityKey,
+  FAST_FORWARD_FEE,
+}) => {
+  const { baseMoneyCost, totalPayment } = costDetails;
+
+  return (
+    <Card
+      className="position-absolute p-3 shadow-lg border-primary"
+      style={{
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: "350px",
+        zIndex: 300, // ZIndex tinggi agar berada di atas overlay
+        textAlign: "center",
+        borderWidth: "4px",
+      }}
+    >
+      <h5 className="mb-3 text-primary">KONFIRMASI FAST FORWARD</h5>
+      <p className="text-dark" style={{ fontWeight: "bold" }}>
+        Aktivitas: {activityName.split(" - ")[1]}
+      </p>
+
+      <div className="text-start mb-3 border-top pt-2">
+        <p className="mb-1">
+          Biaya Fast Forward (Tambahan):{" "}
+          <strong className="float-end text-danger">
+            💰{FAST_FORWARD_FEE.toLocaleString("id-ID")}
+          </strong>
+        </p>
+        {baseMoneyCost < 0 && (
+          <p className="mb-1">
+            Biaya Aktivitas Dasar:{" "}
+            <strong className="float-end text-danger">
+              💰{Math.abs(baseMoneyCost).toLocaleString("id-ID")}
+            </strong>
+          </p>
+        )}
+        <hr className="my-1" />
+        <p className="mb-0 fs-5">
+          Total Biaya:{" "}
+          <strong className="float-end text-danger fs-5">
+            💰{totalPayment.toLocaleString("id-ID")}
+          </strong>
+        </p>
+      </div>
+
+      <div className="d-flex justify-content-between">
+        <Button
+          variant="secondary"
+          className="cursor-target flex-fill me-2"
+          onClick={onCancel}
+        >
+          Batal
+        </Button>
+        <Button
+          variant="primary"
+          className="cursor-target flex-fill ms-2"
+          onClick={() => onConfirm(activityKey, "fastforward")}
+        >
+          Konfirmasi & FF!
+        </Button>
+      </div>
+    </Card>
+  );
+};
+
 const SpecificArea = () => {
   // Destructuring Hooks di tingkat teratas komponen SpecificArea (Correct Hook Placement)
   const {
@@ -83,7 +160,12 @@ const SpecificArea = () => {
     activityState,
     fastForwardActivity,
     playerItems,
+    FAST_FORWARD_FEE,
+    playerStats,
   } = useGame();
+
+  // State baru untuk mengontrol modal konfirmasi FF
+  const [confirmFF, setConfirmFF] = useState(null);
 
   const specificAreaKey = `${currentArea}Area`; // e.g., 'BeachArea'
   const areaData = gameSpecificAreas[specificAreaKey] || {};
@@ -98,7 +180,6 @@ const SpecificArea = () => {
       "Shop Area": { top: "70%", left: "25%" },
       Hotel: { top: "30%", left: "75%" },
       "Sea Area": { top: "70%", left: "70%" },
-      Exit: { top: "50%", left: "45%" },
     };
   } else if (currentArea === "Home") {
     positions = {
@@ -108,15 +189,16 @@ const SpecificArea = () => {
       Exit: { top: "80%", left: "50%" },
     };
   } else {
-    // Posisi untuk Temple, Lake, Mountain
+    // FIX: Posisi untuk Temple, Lake, Mountain (Area dengan 2 lokasi)
     const activityLocationName = Object.keys(locations).find(
       (loc) => loc !== "Exit"
     );
 
     if (activityLocationName) {
-      positions[activityLocationName] = { top: "30%", left: "30%" }; // Aktivitas di pojok kiri atas
+      // Activity di tengah atas
+      positions[activityLocationName] = { top: "30%", left: "45%" };
     }
-    positions["Exit"] = { top: "70%", left: "70%" }; // Exit di pojok kanan bawah
+    positions["Exit"] = { top: "70%", left: "45%" }; // Exit di tengah bawah
   }
 
   const getAreaStyle = (locationName) => ({
@@ -135,8 +217,8 @@ const SpecificArea = () => {
     backgroundColor: "#eee",
     padding: "5px",
     textAlign: "center",
-    opacity: activityState.name ? 0.5 : 1, // Blur areas when activity is ongoing
-    pointerEvents: activityState.name ? "none" : "auto", // Disable clicks during activity
+    opacity: activityState.name || confirmFF ? 0.5 : 1, // Blur areas when activity or modal is ongoing
+    pointerEvents: activityState.name || confirmFF ? "none" : "auto", // Disable clicks when activity or modal is ongoing
   });
 
   // Ambil daftar aktivitas untuk lokasi spesifik saat ini
@@ -153,8 +235,55 @@ const SpecificArea = () => {
     );
   };
 
+  // Cek apakah ada uang yang cukup untuk Fast Forward
+  const isFastForwardAffordable = () => playerStats.money >= FAST_FORWARD_FEE;
+
+  // Cek apakah ada uang yang cukup untuk biaya dasar aktivitas
+  const isBaseCostAffordable = (activityKey) => {
+    const definition = activityDefinitions[activityKey] || {};
+    const baseMoneyCost = definition.statChanges.money || 0;
+    // Perhatikan: baseMoneyCost negatif (biaya)
+    return playerStats.money + baseMoneyCost >= 0;
+  };
+
+  // Logic konfirmasi dan memulai aktivitas
+  const handleConfirmFF = (activityKey, mode) => {
+    setConfirmFF(null); // Tutup modal
+    // Lanjutkan ke fungsi startActivity di GameContext
+    startActivity(activityKey, mode);
+  };
+
+  const handleCancelFF = () => {
+    setConfirmFF(null); // Tutup modal
+  };
+
   const handleActivityStart = (activityName, mode) => {
     const activityKey = `${specificLocation} - ${activityName}`;
+    const definition = activityDefinitions[activityKey] || {};
+    const baseMoneyCost = definition.statChanges.money || 0;
+
+    if (mode === "fastforward") {
+      // Hitung total biaya yang dikeluarkan (absolute value)
+      const totalCost = Math.abs(baseMoneyCost) + FAST_FORWARD_FEE;
+      if (playerStats.money < totalCost) {
+        alert(
+          `Uang tidak cukup! Total biaya Fast Forward adalah 💰${totalCost.toLocaleString(
+            "id-ID"
+          )}.`
+        );
+        return;
+      }
+
+      // Tampilkan modal konfirmasi kustom
+      setConfirmFF({
+        activityKey,
+        activityName: `${specificLocation} - ${activityName}`,
+        costDetails: { baseMoneyCost, totalPayment: totalCost },
+      });
+      return; // Stop di sini, tunggu konfirmasi modal
+    }
+
+    // Lanjutkan dengan memulai aktivitas jika mode normal
     startActivity(activityKey, mode);
   };
 
@@ -169,6 +298,33 @@ const SpecificArea = () => {
       style={{ height: "500px" }}
     >
       <div style={{ position: "relative", flexGrow: 1 }}>
+        {/* Overlay for confirmation modal */}
+        {confirmFF && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 250,
+            }}
+          />
+        )}
+
+        {/* Confirmation Modal */}
+        {confirmFF && (
+          <FastForwardConfirmModal
+            costDetails={confirmFF.costDetails}
+            activityName={confirmFF.activityName}
+            activityKey={confirmFF.activityKey}
+            FAST_FORWARD_FEE={FAST_FORWARD_FEE}
+            onConfirm={handleConfirmFF}
+            onCancel={handleCancelFF}
+          />
+        )}
+
         {/* Panel Aktivitas Sedang Berlangsung (Hanya muncul jika activityState.name ada) */}
         <ActivityPanel
           activityState={activityState}
@@ -208,7 +364,8 @@ const SpecificArea = () => {
             {/* Tombol Aktivitas (Hanya muncul di lokasi spesifik saat ini) */}
             {locationName === specificLocation &&
               currentActivities.length > 0 &&
-              !specificLocation.includes("Exit") && (
+              !specificLocation.includes("Exit") &&
+              !specificLocation.includes("Road") && (
                 <Card
                   className="position-absolute p-2 shadow"
                   style={{
@@ -216,15 +373,25 @@ const SpecificArea = () => {
                     right: "10px",
                     width: "250px",
                     zIndex: 10,
-                    opacity: activityState.name ? 0.5 : 1, // Blur buttons when activity is ongoing
-                    pointerEvents: activityState.name ? "none" : "auto", // Disable clicks during activity
+                    opacity: activityState.name || confirmFF ? 0.5 : 1, // Blur buttons when activity or modal is ongoing
+                    pointerEvents:
+                      activityState.name || confirmFF ? "none" : "auto", // Disable clicks when activity or modal is ongoing
                   }}
                 >
                   <h6>Activities in {locationName}:</h6>
                   {currentActivities.map((activityName) => {
                     const activityKey = `${specificLocation} - ${activityName}`;
-                    const isAvailable = isActivityAvailable(activityName);
+                    const isAvailable =
+                      isActivityAvailable(activityName) &&
+                      isBaseCostAffordable(activityKey);
+                    const isFastForwardPossible =
+                      isAvailable && isFastForwardAffordable();
                     const definition = activityDefinitions[activityKey] || {};
+                    const moneyText = definition.statChanges.money
+                      ? ` (Cost: 💰${Math.abs(
+                          definition.statChanges.money
+                        ).toLocaleString("id-ID")})`
+                      : "";
 
                     return (
                       <div
@@ -233,6 +400,7 @@ const SpecificArea = () => {
                       >
                         <span className="me-2" style={{ fontWeight: "bold" }}>
                           {activityName} {definition.animation}
+                          {moneyText}
                         </span>
                         <div className="d-flex justify-content-between">
                           <Button
@@ -250,7 +418,7 @@ const SpecificArea = () => {
                           </Button>
                           <Button
                             variant={
-                              isAvailable
+                              isFastForwardPossible
                                 ? "outline-primary"
                                 : "outline-secondary"
                             }
@@ -259,16 +427,32 @@ const SpecificArea = () => {
                             onClick={() =>
                               handleActivityStart(activityName, "fastforward")
                             }
-                            disabled={!isAvailable}
+                            disabled={!isFastForwardPossible}
+                            title={
+                              !isFastForwardPossible && isAvailable
+                                ? `Needs 💰${FAST_FORWARD_FEE.toLocaleString(
+                                    "id-ID"
+                                  )} for Fast Forward Fee`
+                                : ""
+                            }
                           >
-                            Fast Forward
+                            FF (💰{FAST_FORWARD_FEE.toLocaleString("id-ID")})
                           </Button>
                         </div>
                         {!isAvailable &&
-                          definition.requiredItems.length > 0 && (
+                          (definition.requiredItems.length > 0 ||
+                            !isBaseCostAffordable(activityKey)) && (
                             <small className="text-danger">
-                              {" "}
-                              (Needs: {definition.requiredItems.join(", ")})
+                              (
+                              {definition.requiredItems.length > 0
+                                ? `Needs: ${definition.requiredItems.join(
+                                    ", "
+                                  )}`
+                                : ""}
+                              {!isBaseCostAffordable(activityKey)
+                                ? " Not enough money for base cost!"
+                                : ""}
+                              )
                             </small>
                           )}
                       </div>
@@ -278,6 +462,13 @@ const SpecificArea = () => {
               )}
           </div>
         ))}
+      </div>
+
+      <div className="text-center py-2 bg-light border-top border-dark">
+        <small>
+          Figure 3. Specific Area Stage ({currentArea} -{" "}
+          {specificLocation || "No Location"})
+        </small>
       </div>
     </div>
   );

@@ -52,8 +52,7 @@ export const initialItems = [
   },
 ];
 
-// Area connections for movement: { AreaName: { Up: 'Area', Down: 'Area', Left: 'Area', Right: 'Area', Background: 'image.jpg', SpecificArea: 'AreaSpecificName' } }
-// Koneksi ini digunakan untuk navigasi keyboard. Layout peta di GameArena.jsx tidak berubah.
+// Area connections for movement
 export const gameAreas = {
   Home: {
     up: "Temple",
@@ -101,7 +100,7 @@ export const gameAreas = {
 export const activityDefinitions = {
   // Beach Activities
   "Sands Area - PLAY SANDS": {
-    duration: 3, // In ticks (1 tick = 1 hour in-game time)
+    duration: 3,
     statChanges: { happiness: 20, cleanliness: -10, lifeSatisfaction: 5 },
     message: "Playing in the sands... fun!",
     requiredItems: [],
@@ -177,14 +176,14 @@ export const activityDefinitions = {
     duration: 6,
     statChanges: { happiness: 30, sleep: -10, meal: -5, lifeSatisfaction: 10 },
     message: "Riding the waves!",
-    requiredItems: ["surfboard"], // Requires surfboard item
+    requiredItems: ["surfboard"],
     animation: "🌊",
     type: "activity",
   },
-  // Home Activities (Diposisikan di HomeArea)
+  // Home Activities
   "Kitchen - EAT": {
     duration: 2,
-    statChanges: { meal: 50, money: -1000 }, // Asumsi makan butuh uang
+    statChanges: { meal: 50, money: -1000 },
     message: "Eating a hearty meal...",
     requiredItems: [],
     animation: "🍽️",
@@ -206,8 +205,8 @@ export const activityDefinitions = {
     animation: "🧼",
     type: "activity",
   },
-  // Temple, Lake, Mountain Areas (Placeholder for now)
-  "TempleArea - MEDITATE": {
+  // Other Areas
+  "Praying Area - MEDITATE": {
     duration: 8,
     statChanges: { happiness: 20, sleep: 10, meal: -10, lifeSatisfaction: 15 },
     message: "Meditating in the silent temple...",
@@ -215,7 +214,7 @@ export const activityDefinitions = {
     animation: "🧘",
     type: "activity",
   },
-  "LakeArea - FISHING": {
+  "Fishing Spot - FISHING": {
     duration: 5,
     statChanges: { meal: 20, happiness: 5, cleanliness: -5 },
     message: "Fishing in the quiet lake...",
@@ -223,7 +222,7 @@ export const activityDefinitions = {
     animation: "🎣",
     type: "activity",
   },
-  "MountainArea - HIKING": {
+  "Trailhead - HIKING": {
     duration: 10,
     statChanges: {
       sleep: -20,
@@ -239,64 +238,131 @@ export const activityDefinitions = {
   },
 };
 
-// Struktur Area Spesifik (Area di dalam Area Utama)
+// Struktur Area Spesifik (dengan koneksi arah baru untuk navigasi keyboard/panah)
 export const gameSpecificAreas = {
   BeachArea: {
     name: "Beach",
     bg: "beach.jpg",
     locations: {
-      "Sands Area": { activities: ["PLAY SANDS", "SUNBATHING", "SIGHTSEEING"] },
+      "Sands Area": {
+        activities: ["PLAY SANDS", "SUNBATHING", "SIGHTSEEING"],
+        right: "Hotel",
+        down: "Shop Area",
+        up: "Road (for going back)", // Move to exit area
+      },
       "Shop Area": {
         activities: ["BUY COCONUT", "BUY SOUVENIR", "BUY SURFBOARD"],
+        up: "Sands Area",
+        right: "Sea Area",
+        left: "Road (for going back)",
       },
-      "Sea Area": { activities: ["SWIMMING", "SURFING"] },
-      Hotel: { activities: ["CHECK-IN"] },
-      Exit: { activities: ["GO BACK"] },
+      "Sea Area": {
+        activities: ["SWIMMING", "SURFING"],
+        left: "Shop Area",
+        up: "Hotel",
+        down: "Road (for going back)",
+      },
+      Hotel: {
+        activities: ["CHECK-IN"],
+        left: "Sands Area",
+        down: "Sea Area",
+        right: "Road (for going back)",
+      },
+      "Road (for going back)": {
+        activities: ["GO BACK"],
+        up: "Sands Area",
+        down: "Sea Area",
+        left: "Shop Area",
+        right: "Hotel",
+      },
     },
   },
   HomeArea: {
     name: "Home",
     bg: "home.jpg",
     locations: {
-      Kitchen: { activities: ["EAT"] },
-      Bedroom: { activities: ["SLEEP"] },
-      Bathroom: { activities: ["CLEAN UP"] },
-      Exit: { activities: ["GO BACK"] },
+      Kitchen: { activities: ["EAT"], right: "Bedroom", down: "Bathroom" },
+      Bedroom: {
+        activities: ["SLEEP"],
+        left: "Kitchen",
+        down: "Bathroom",
+        up: "Exit",
+      },
+      Bathroom: {
+        activities: ["CLEAN UP"],
+        up: "Kitchen",
+        right: "Bedroom",
+        left: "Exit",
+      },
+      Exit: {
+        activities: ["GO BACK"],
+        up: "Kitchen",
+        right: "Bathroom",
+        down: "Bedroom",
+        left: "Bedroom",
+      }, // Can exit from any direction back to a room
     },
   },
-  // Placeholder untuk area lain
   TempleArea: {
     name: "Temple",
     bg: "temple.jpg",
     locations: {
-      "Praying Area": { activities: ["MEDITATE"] },
-      Exit: { activities: ["GO BACK"] },
+      "Praying Area": {
+        activities: ["MEDITATE"],
+        down: "Exit",
+        up: "Exit",
+        left: "Exit",
+        right: "Exit",
+      },
+      Exit: {
+        activities: ["GO BACK"],
+        up: "Praying Area",
+        down: "Praying Area",
+        left: "Praying Area",
+        right: "Praying Area",
+      },
     },
   },
   LakeArea: {
     name: "Lake",
     bg: "lake.jpg",
     locations: {
-      "Fishing Spot": { activities: ["FISHING"] },
-      Exit: { activities: ["GO BACK"] },
+      "Fishing Spot": {
+        activities: ["FISHING"],
+        down: "Exit",
+        up: "Exit",
+        left: "Exit",
+        right: "Exit",
+      },
+      Exit: {
+        activities: ["GO BACK"],
+        up: "Fishing Spot",
+        down: "Fishing Spot",
+        left: "Fishing Spot",
+        right: "Fishing Spot",
+      },
     },
   },
   MountainArea: {
     name: "Mountain",
     bg: "mount.jpg",
     locations: {
-      Trailhead: { activities: ["HIKING"] },
-      Exit: { activities: ["GO BACK"] },
+      Trailhead: {
+        activities: ["HIKING"],
+        down: "Exit",
+        up: "Exit",
+        left: "Exit",
+        right: "Exit",
+      },
+      Exit: {
+        activities: ["GO BACK"],
+        up: "Trailhead",
+        down: "Trailhead",
+        left: "Trailhead",
+        right: "Trailhead",
+      },
     },
   },
-};
-
-// --- Scoring Logic ---
-export const scoreMultipliers = {
-  statBalanceWeight: 0.4,
-  activitiesPerformedWeight: 0.3,
-  itemsCollectedWeight: 0.1,
-  areasVisitedWeight: 0.2,
 };
 
 // Helper to get next area name based on direction
@@ -306,4 +372,11 @@ export const getNextArea = (currentArea, direction) => {
     return areaData[direction];
   }
   return null;
+};
+
+export const scoreMultipliers = {
+  statBalanceWeight: 0.4,
+  activitiesPerformedWeight: 0.3,
+  itemsCollectedWeight: 0.1,
+  areasVisitedWeight: 0.2,
 };

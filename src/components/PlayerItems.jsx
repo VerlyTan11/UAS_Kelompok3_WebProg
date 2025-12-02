@@ -3,16 +3,26 @@ import { useGame } from "../context/useGame";
 import { ListGroup, Button } from "react-bootstrap";
 
 const PlayerItems = () => {
-  // FIX: Mengubah destructuring dari useItem menjadi activateItem
-  const { playerItems, moveAreaByDirection, activateItem, specificLocation } =
-    useGame();
+  const {
+    playerItems,
+    activateItem,
+    specificLocation,
+    currentArea,
+    activityState,
+    gameAreas,
+    enterSpecificArea,
+    moveAreaByDirection,
+  } = useGame();
+
+  const isActivityOngoing = !!activityState.name;
 
   // Handle Keyboard Movement
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Hanya aktifkan pergerakan keyboard jika tidak berada di area spesifik (Main Arena)
-      if (specificLocation) return;
+      // 1. Jika aktivitas sedang berjalan, abaikan semua input
+      if (isActivityOngoing) return;
 
+      // 2. Handle Directional Movement (Main Area DAN Specific Area)
       switch (e.key) {
         case "ArrowUp":
         case "w":
@@ -30,6 +40,12 @@ const PlayerItems = () => {
         case "d":
           moveAreaByDirection("right");
           break;
+        case "Enter":
+          // Jika di Area Utama dan Area saat ini memiliki Specific Area, MASUK
+          if (!specificLocation && gameAreas[currentArea]?.specificArea) {
+            enterSpecificArea(currentArea);
+          }
+          break;
         default:
           break;
       }
@@ -37,7 +53,14 @@ const PlayerItems = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [moveAreaByDirection, specificLocation]);
+  }, [
+    moveAreaByDirection,
+    isActivityOngoing,
+    gameAreas,
+    currentArea,
+    specificLocation,
+    enterSpecificArea,
+  ]);
 
   return (
     <div
@@ -45,7 +68,7 @@ const PlayerItems = () => {
       style={{ width: "200px" }}
     >
       <div className="p-2 border-bottom border-dark text-center">
-        **Player's Items**
+        <h5>Player's Items</h5>
       </div>
       {/* Item List with Use Button */}
       <ListGroup variant="flush" className="flex-grow-1 overflow-auto">
@@ -68,7 +91,8 @@ const PlayerItems = () => {
                   variant="info"
                   size="sm"
                   className="cursor-target"
-                  onClick={() => activateItem(item.id)} // FIX: Menggunakan activateItem
+                  onClick={() => activateItem(item.id)}
+                  disabled={isActivityOngoing} // Disable use button when activity is running
                 >
                   Use
                 </Button>
@@ -82,53 +106,16 @@ const PlayerItems = () => {
         )}
       </ListGroup>
 
-      {/* Movement Controls (On-Screen Arrows) */}
-      <div className="p-2 border-top border-dark d-flex justify-content-center">
-        <div className="d-flex flex-column align-items-center">
-          <Button
-            variant="outline-dark"
-            size="sm"
-            className="mb-1 cursor-target"
-            style={{ borderRadius: "50%" }}
-            onClick={() => moveAreaByDirection("up")}
-            disabled={!!specificLocation} // Disable if in specific area
-          >
-            <i className="bi bi-caret-up-fill"></i>
-          </Button>
-          <div className="d-flex">
-            <Button
-              variant="outline-dark"
-              size="sm"
-              className="me-1 cursor-target"
-              style={{ borderRadius: "50%" }}
-              onClick={() => moveAreaByDirection("left")}
-              disabled={!!specificLocation} // Disable if in specific area
-            >
-              <i className="bi bi-caret-left-fill"></i>
-            </Button>
-            <Button
-              variant="outline-dark"
-              size="sm"
-              className="cursor-target"
-              style={{ borderRadius: "50%" }}
-              onClick={() => moveAreaByDirection("right")}
-              disabled={!!specificLocation} // Disable if in specific area
-            >
-              <i className="bi bi-caret-right-fill"></i>
-            </Button>
+      {/* Tambahkan hint tombol Enter */}
+      {gameAreas[currentArea]?.specificArea &&
+        !specificLocation &&
+        !isActivityOngoing && (
+          <div className="text-center p-2 border-top border-dark">
+            <small className="text-dark">
+              Press [Enter] to interact with {currentArea}
+            </small>
           </div>
-          <Button
-            variant="outline-dark"
-            size="sm"
-            className="mt-1 cursor-target"
-            style={{ borderRadius: "50%" }}
-            onClick={() => moveAreaByDirection("down")}
-            disabled={!!specificLocation} // Disable if in specific area
-          >
-            <i className="bi bi-caret-down-fill"></i>
-          </Button>
-        </div>
-      </div>
+        )}
     </div>
   );
 };
