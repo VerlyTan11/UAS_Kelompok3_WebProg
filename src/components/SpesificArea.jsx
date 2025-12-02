@@ -176,7 +176,7 @@ const SpecificArea = () => {
   if (currentArea === "Beach") {
     positions = {
       "Sands Area": { top: "30%", left: "20%" },
-      "Road (for going back)": { top: "50%", left: "45%" },
+      Exit: { top: "50%", left: "45%" }, 
       "Shop Area": { top: "70%", left: "25%" },
       Hotel: { top: "30%", left: "75%" },
       "Sea Area": { top: "70%", left: "70%" },
@@ -228,7 +228,8 @@ const SpecificArea = () => {
   const isActivityAvailable = (activityName) => {
     const activityKey = `${specificLocation} - ${activityName}`;
     const definition = activityDefinitions[activityKey];
-    if (!definition || !definition.requiredItems) return true;
+    // Pastikan requiredItems diakses dengan aman
+    if (!definition || !definition.requiredItems?.length) return true;
 
     return definition.requiredItems.every((itemReq) =>
       playerItems.some((item) => item.id === itemReq && item.inInventory)
@@ -240,8 +241,9 @@ const SpecificArea = () => {
 
   // Cek apakah ada uang yang cukup untuk biaya dasar aktivitas
   const isBaseCostAffordable = (activityKey) => {
-    const definition = activityDefinitions[activityKey] || {};
-    const baseMoneyCost = definition.statChanges.money || 0;
+    // FIX: Menggunakan optional chaining (?.) untuk mengakses properti bersarang
+    const definition = activityDefinitions[activityKey];
+    const baseMoneyCost = definition?.statChanges?.money || 0;
     // Perhatikan: baseMoneyCost negatif (biaya)
     return playerStats.money + baseMoneyCost >= 0;
   };
@@ -259,8 +261,9 @@ const SpecificArea = () => {
 
   const handleActivityStart = (activityName, mode) => {
     const activityKey = `${specificLocation} - ${activityName}`;
-    const definition = activityDefinitions[activityKey] || {};
-    const baseMoneyCost = definition.statChanges.money || 0;
+    // FIX: Menggunakan optional chaining (?.) untuk mengakses properti bersarang
+    const definition = activityDefinitions[activityKey];
+    const baseMoneyCost = definition?.statChanges?.money || 0;
 
     if (mode === "fastforward") {
       // Hitung total biaya yang dikeluarkan (absolute value)
@@ -297,12 +300,18 @@ const SpecificArea = () => {
       className="d-flex flex-column flex-grow-1 position-relative"
       style={{ height: "500px" }}
     >
+      <div className="text-center py-2 bg-light border-top border-dark">
+        <small>
+          Specific Area Stage ({currentArea} -{" "}
+          {specificLocation || "No Location"})
+        </small>
+      </div>
       <div style={{ position: "relative", flexGrow: 1 }}>
         {/* Overlay for confirmation modal */}
         {confirmFF && (
           <div
             style={{
-              position: "absolute",
+              position: "relative",
               top: 0,
               left: 0,
               right: 0,
@@ -364,8 +373,7 @@ const SpecificArea = () => {
             {/* Tombol Aktivitas (Hanya muncul di lokasi spesifik saat ini) */}
             {locationName === specificLocation &&
               currentActivities.length > 0 &&
-              !specificLocation.includes("Exit") &&
-              !specificLocation.includes("Road") && (
+              !locationName.includes("Exit") && (
                 <Card
                   className="position-absolute p-2 shadow"
                   style={{
@@ -387,7 +395,7 @@ const SpecificArea = () => {
                     const isFastForwardPossible =
                       isAvailable && isFastForwardAffordable();
                     const definition = activityDefinitions[activityKey] || {};
-                    const moneyText = definition.statChanges.money
+                    const moneyText = definition.statChanges?.money // Safe access
                       ? ` (Cost: 💰${Math.abs(
                           definition.statChanges.money
                         ).toLocaleString("id-ID")})`
@@ -440,11 +448,11 @@ const SpecificArea = () => {
                           </Button>
                         </div>
                         {!isAvailable &&
-                          (definition.requiredItems.length > 0 ||
+                          (definition.requiredItems?.length > 0 || // Safe access
                             !isBaseCostAffordable(activityKey)) && (
                             <small className="text-danger">
                               (
-                              {definition.requiredItems.length > 0
+                              {definition.requiredItems?.length > 0
                                 ? `Needs: ${definition.requiredItems.join(
                                     ", "
                                   )}`
@@ -462,13 +470,6 @@ const SpecificArea = () => {
               )}
           </div>
         ))}
-      </div>
-
-      <div className="text-center py-2 bg-light border-top border-dark">
-        <small>
-          Figure 3. Specific Area Stage ({currentArea} -{" "}
-          {specificLocation || "No Location"})
-        </small>
       </div>
     </div>
   );

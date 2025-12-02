@@ -54,7 +54,12 @@ const MovementControlsGlobal = () => {
           </Button>
           {/* HINT */}
           <span
-            style={{ width: "40px", textAlign: "center", fontSize: "0.7rem" }}
+            style={{
+              width: "40px",
+              textAlign: "center",
+              fontSize: "0.7rem",
+              marginTop: "10px",
+            }}
           >
             {specificLocation ? specificLocation.split(" ")[0] : currentArea}
           </span>

@@ -13,9 +13,9 @@ import {
 
 const FAST_FORWARD_FEE = 10000; // Cost to instantly complete an activity
 const TIME_PER_TICK_MS = 60 * 1000; // 1 hour game time jump
-const REAL_TIME_TICK_MS = 3000; // 5 seconds real time for game logic tick
+const REAL_TIME_TICK_MS = 3000; // 3 seconds real time for game logic tick
 
-const getInitialTime = () => new Date(2025, 10, 29, 9, 43); // Helper function for initial date
+const getInitialTime = () => new Date(2025, 10, 29, 9, 45); // Helper function for initial date
 
 export const GameProvider = ({ children }) => {
   // Game States
@@ -130,10 +130,9 @@ export const GameProvider = ({ children }) => {
       if (currentLocationData && currentLocationData[direction]) {
         const nextLocation = currentLocationData[direction];
 
-        // Jika tujuan adalah Exit atau Road (untuk keluar), gunakan moveSpecificLocation
+        // Jika tujuan adalah Exit gunakan moveSpecificLocation
         if (
-          nextLocation.includes("Exit") ||
-          nextLocation.includes("Road (for going back)")
+          nextLocation.includes("Exit")
         ) {
           moveSpecificLocation(nextLocation);
         } else {
@@ -162,9 +161,8 @@ export const GameProvider = ({ children }) => {
   };
 
   const moveSpecificLocation = (locationName) => {
-    // FIX: Saat Exit/Road dipanggil melalui klik/keyboard, kembali ke Main Area
+    // FIX: Saat Exit dipanggil melalui klik/keyboard, kembali ke Main Area
     if (
-      locationName.includes("Road (for going back)") ||
       locationName.includes("Exit")
     ) {
       moveArea(currentArea);

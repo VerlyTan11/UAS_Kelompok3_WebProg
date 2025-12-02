@@ -248,27 +248,27 @@ export const gameSpecificAreas = {
         activities: ["PLAY SANDS", "SUNBATHING", "SIGHTSEEING"],
         right: "Hotel",
         down: "Shop Area",
-        up: "Road (for going back)", // Move to exit area
+        up: "Exit", // Move to exit area
       },
       "Shop Area": {
         activities: ["BUY COCONUT", "BUY SOUVENIR", "BUY SURFBOARD"],
         up: "Sands Area",
         right: "Sea Area",
-        left: "Road (for going back)",
+        left: "Exit",
       },
       "Sea Area": {
         activities: ["SWIMMING", "SURFING"],
         left: "Shop Area",
         up: "Hotel",
-        down: "Road (for going back)",
+        down: "Exit",
       },
-      Hotel: {
+      "Hotel": {
         activities: ["CHECK-IN"],
         left: "Sands Area",
         down: "Sea Area",
-        right: "Road (for going back)",
+        right: "Exit",
       },
-      "Road (for going back)": {
+      Exit: {
         activities: ["GO BACK"],
         up: "Sands Area",
         down: "Sea Area",
