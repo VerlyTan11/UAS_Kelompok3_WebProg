@@ -38,7 +38,6 @@ const GameArena = () => {
     );
   }
 
-  // Tampilan Main Game Arena (Figure 2)
   const positions = {
     Home: { top: "5%", left: "10%" },
     Beach: { top: "15%", left: "60%" },
@@ -163,9 +162,6 @@ const GameArena = () => {
             )}
           </div>
         ))}
-        <div className="text-center py-2 bg-light border-top border-dark position-absolute bottom-0 w-100">
-          <small>Figure 2. Main Game Arena (Current: {currentArea})</small>
-        </div>
       </div>
 
       {/* Item Sidebar Kanan */}

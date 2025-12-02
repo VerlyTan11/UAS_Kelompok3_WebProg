@@ -4,19 +4,17 @@ import { Button, Card, ProgressBar } from "react-bootstrap";
 import { activityDefinitions } from "../context/GameConstants";
 
 // Komponen untuk menampilkan aktivitas yang sedang berlangsung
-const ActivityPanel = ({
-  activityState,
-  fastForwardActivity,
-  startActivity,
-  specificLocation,
-}) => {
-  // FIX: Panggil Hooks di awal, di tingkat atas fungsi komponen.
-  const { currentArea, gameSpecificAreas } = useGame();
-
+const ActivityPanel = ({ activityState, fastForwardActivity }) => {
+  // Hanya ambil state dari props, karena semua Hooks sudah dipanggil di SpecificArea
   const { name, progress, message, animation, mode } = activityState;
   const activityName = name?.split(" - ")[1];
 
-  // Tombol untuk mengaktifkan Fast Forward (jika mode normal) atau mode normal (jika belum berjalan)
+  // Jika tidak ada aktivitas yang berjalan, return null.
+  if (!name) {
+    return null;
+  }
+
+  // Tombol untuk mengaktifkan Fast Forward (jika mode normal)
   const renderActionButtons = () => {
     if (mode === "normal") {
       return (
@@ -29,64 +27,10 @@ const ActivityPanel = ({
         </Button>
       );
     }
-    return null; // Fast Forward Mode diselesaikan instan di GameContext
+    return null;
   };
 
-  // Tampilkan tombol Start Normal/Fast Forward saat aktivitas belum berjalan
-  if (!name) {
-    // Mengambil aktivitas yang valid untuk lokasi spesifik saat ini
-    const specificAreaKey = `${currentArea}Area`;
-    const locations = gameSpecificAreas[specificAreaKey]?.locations || {};
-    const activitiesInLocation = locations[specificLocation]?.activities || [];
-
-    // Jika tidak ada aktivitas, tidak perlu menampilkan panel start
-    if (
-      activitiesInLocation.length === 0 ||
-      specificLocation.includes("Exit") ||
-      specificLocation.includes("Road")
-    ) {
-      return null;
-    }
-
-    // Gunakan aktivitas pertama sebagai default untuk ditampilkan di panel
-    const defaultActivityName = activitiesInLocation[0];
-    const defaultActivityKey = `${specificLocation} - ${defaultActivityName}`;
-
-    return (
-      <Card
-        className="position-absolute p-3 shadow-lg"
-        style={{
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "350px",
-          zIndex: 200,
-          textAlign: "center",
-        }}
-      >
-        <h5>Aktivitas Siap Dimulai: {defaultActivityName}</h5>
-        <p>Pilih mode untuk memulai.</p>
-        <div className="d-grid gap-2">
-          <Button
-            variant="success"
-            className="cursor-target"
-            onClick={() => startActivity(defaultActivityKey, "normal")}
-          >
-            Start Activity (Normal Mode)
-          </Button>
-          <Button
-            variant="info"
-            className="cursor-target"
-            onClick={() => startActivity(defaultActivityKey, "fastforward")}
-          >
-            Start Activity (Fast Forward Mode)
-          </Button>
-        </div>
-      </Card>
-    );
-  }
-
-  // Tampilan ketika aktivitas sedang berjalan
+  // Tampilan ketika aktivitas sedang berjalan (Progress Card)
   return (
     <Card
       className="position-absolute p-3 shadow-lg"
@@ -129,7 +73,7 @@ const ActivityPanel = ({
 };
 
 const SpecificArea = () => {
-  // Destructuring Hooks di tingkat teratas komponen SpecificArea
+  // Destructuring Hooks di tingkat teratas komponen SpecificArea (Correct Hook Placement)
   const {
     moveSpecificLocation,
     currentArea,
@@ -145,7 +89,6 @@ const SpecificArea = () => {
   const areaData = gameSpecificAreas[specificAreaKey] || {};
   const locations = areaData.locations || {};
 
-  // Menentukan posisi berdasarkan Figure 3 dan penyesuaian untuk area tunggal
   let positions = {};
 
   if (currentArea === "Beach") {
@@ -155,6 +98,7 @@ const SpecificArea = () => {
       "Shop Area": { top: "70%", left: "25%" },
       Hotel: { top: "30%", left: "75%" },
       "Sea Area": { top: "70%", left: "70%" },
+      Exit: { top: "50%", left: "45%" },
     };
   } else if (currentArea === "Home") {
     positions = {
@@ -164,7 +108,7 @@ const SpecificArea = () => {
       Exit: { top: "80%", left: "50%" },
     };
   } else {
-    // FIX: Posisi untuk Temple, Lake, Mountain
+    // Posisi untuk Temple, Lake, Mountain
     const activityLocationName = Object.keys(locations).find(
       (loc) => loc !== "Exit"
     );
@@ -225,12 +169,10 @@ const SpecificArea = () => {
       style={{ height: "500px" }}
     >
       <div style={{ position: "relative", flexGrow: 1 }}>
-        {/* Panel Aktivitas Sedang Berlangsung / Panel Start */}
+        {/* Panel Aktivitas Sedang Berlangsung (Hanya muncul jika activityState.name ada) */}
         <ActivityPanel
           activityState={activityState}
           fastForwardActivity={fastForwardActivity}
-          specificLocation={specificLocation}
-          startActivity={startActivity}
         />
 
         {/* Area Lingkaran */}
@@ -242,13 +184,11 @@ const SpecificArea = () => {
             className="shadow-sm cursor-target"
           >
             <span className="text-dark">
-              **
               {locationName
                 .replace(" (for going back)", "")
                 .replace(" Area", "")
                 .replace(" Spot", "")
                 .replace("head", "")}
-              **
             </span>
 
             {/* Player Icon di lokasi saat ini */}
@@ -267,7 +207,8 @@ const SpecificArea = () => {
 
             {/* Tombol Aktivitas (Hanya muncul di lokasi spesifik saat ini) */}
             {locationName === specificLocation &&
-              currentActivities.length > 0 && (
+              currentActivities.length > 0 &&
+              !specificLocation.includes("Exit") && (
                 <Card
                   className="position-absolute p-2 shadow"
                   style={{
@@ -337,13 +278,6 @@ const SpecificArea = () => {
               )}
           </div>
         ))}
-      </div>
-
-      <div className="text-center py-2 bg-light border-top border-dark">
-        <small>
-          Figure 3. Specific Area Stage ({currentArea} -{" "}
-          {specificLocation || "No Location"})
-        </small>
       </div>
     </div>
   );

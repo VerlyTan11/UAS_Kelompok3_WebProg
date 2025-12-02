@@ -11,6 +11,8 @@ import {
   scoreMultipliers,
 } from "./GameConstants";
 
+const FAST_FORWARD_FEE = 10000; // Cost to instantly complete an activity
+
 export const GameProvider = ({ children }) => {
   // Game States
   const [gameState, setGameState] = useState("initial");
@@ -71,35 +73,34 @@ export const GameProvider = ({ children }) => {
       playerStats.cleanliness,
     ];
     const balanceScore = stats.reduce((acc, val) => {
-      // Penalty is the absolute difference from 50 (max penalty is 50, max score is 50 per stat)
       const penalty = Math.abs(val - 50);
       return acc + (50 - penalty);
-    }, 0); // Max 200 (4 * 50)
-    const normalizedBalanceScore = (balanceScore / 200) * 100; // Max 100
+    }, 0);
+    const normalizedBalanceScore = (balanceScore / 200) * 100;
 
     // 2. Activities Performed (Max 100 if > 20 activities)
     const activityScore = Math.min(100, activitiesPerformed * 5);
 
-    // 3. Items Collected (Max 100, based on unique items in initialItems + purchased items)
+    // 3. Items Collected (Max 100)
     const initialUniqueItems = initialItems.length;
     const currentUniqueItems = playerItems.filter(
       (item) => item.inInventory
     ).length;
-    const totalPossibleUniqueItems = initialUniqueItems + 3; // 3 extra items in shop for example (Surfboard + 2 more dummy)
-    const itemsScore = (currentUniqueItems / totalPossibleUniqueItems) * 100; // Max 100
+    const totalPossibleUniqueItems = initialUniqueItems + 3;
+    const itemsScore = (currentUniqueItems / totalPossibleUniqueItems) * 100;
 
     // 4. Variety of Visited Areas (Max 100 if all 5 main areas visited)
-    const areaScore = (visitedAreas.size / Object.keys(gameAreas).length) * 100; // Max 100
+    const areaScore = (visitedAreas.size / Object.keys(gameAreas).length) * 100;
 
     // Weighted Total Score (Max 100)
     const finalLifeSatisfactionScore = Math.round(
-      normalizedBalanceScore * scoreMultipliers.statBalanceWeight + // Max 100 * 0.4 = 40
-        activityScore * scoreMultipliers.activitiesPerformedWeight + // Max 100 * 0.3 = 30
-        itemsScore * scoreMultipliers.itemsCollectedWeight + // Max 100 * 0.1 = 10
-        areaScore * scoreMultipliers.areasVisitedWeight // Max 100 * 0.2 = 20
-    ); // Max 100
+      normalizedBalanceScore * scoreMultipliers.statBalanceWeight +
+        activityScore * scoreMultipliers.activitiesPerformedWeight +
+        itemsScore * scoreMultipliers.itemsCollectedWeight +
+        areaScore * scoreMultipliers.areasVisitedWeight
+    );
 
-    return Math.min(100, Math.max(0, finalLifeSatisfactionScore)); // Final score capped at 100
+    return Math.min(100, Math.max(0, finalLifeSatisfactionScore));
   }, [playerStats, activitiesPerformed, playerItems, visitedAreas]);
 
   // --- Game Loop and Core Functions ---
@@ -109,15 +110,13 @@ export const GameProvider = ({ children }) => {
     setGameState("playing");
   };
 
-  // Move Area (Main Map)
   const moveArea = (areaName) => {
     if (areaName === null) return;
     setCurrentArea(areaName);
     setSpecificLocation(null);
-    setVisitedAreas((prev) => new Set(prev).add(areaName)); // Track visited areas
+    setVisitedAreas((prev) => new Set(prev).add(areaName));
   };
 
-  // Move area by direction (Keyboard support)
   const moveAreaByDirection = (direction) => {
     const nextArea = getNextArea(currentArea, direction);
     if (nextArea) {
@@ -125,10 +124,8 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Enter Specific Area (E.g., enter Beach area)
   const enterSpecificArea = (areaName) => {
     if (gameAreas[areaName].specificArea) {
-      // Tentukan lokasi spesifik default saat masuk
       const specificAreaKey = `${areaName}Area`;
       const firstLocation = Object.keys(
         gameSpecificAreas[specificAreaKey].locations
@@ -137,10 +134,9 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  // Move Specific Location (Inside Specific Area)
   const moveSpecificLocation = (locationName) => {
     if (locationName === "Road (for going back)" || locationName === "Exit") {
-      moveArea(currentArea); // Kembali ke Main Area
+      moveArea(currentArea);
       setSpecificLocation(null);
     } else {
       setSpecificLocation(locationName);
@@ -148,46 +144,55 @@ export const GameProvider = ({ children }) => {
   };
 
   // Activity execution/completion
-  const completeActivity = useCallback((activityKey, statChanges) => {
-    const definition = activityDefinitions[activityKey];
+  const completeActivity = useCallback(
+    (activityKey, statChanges, initialMoneyChange) => {
+      const definition = activityDefinitions[activityKey];
 
-    // Apply stats
-    updateStats(statChanges);
-    setActivitiesPerformed((prev) => prev + 1);
+      // Calculate final stats to apply (excluding money if already applied)
+      const finalStatChanges = { ...statChanges };
+      if (initialMoneyChange !== undefined) {
+        finalStatChanges.money = initialMoneyChange;
+      }
 
-    // Apply item acquired (if purchase)
-    if (definition.type === "purchase" && definition.itemAcquired) {
-      const acquiredItem = definition.itemAcquired;
-      setPlayerItems((prevItems) => {
-        const existingItem = prevItems.find(
-          (item) => item.id === acquiredItem.id
-        );
-        if (!existingItem) {
-          return [...prevItems, { ...acquiredItem, inInventory: true }];
-        }
-        return prevItems.map((item) =>
-          item.id === acquiredItem.id ? { ...item, inInventory: true } : item
-        );
+      // Apply final stats
+      updateStats(finalStatChanges);
+      setActivitiesPerformed((prev) => prev + 1);
+
+      // Apply item acquired (if purchase)
+      if (definition.type === "purchase" && definition.itemAcquired) {
+        const acquiredItem = definition.itemAcquired;
+        setPlayerItems((prevItems) => {
+          const existingItem = prevItems.find(
+            (item) => item.id === acquiredItem.id
+          );
+          if (!existingItem) {
+            return [...prevItems, { ...acquiredItem, inInventory: true }];
+          }
+          return prevItems.map((item) =>
+            item.id === acquiredItem.id ? { ...item, inInventory: true } : item
+          );
+        });
+      }
+
+      // Reset activity state
+      setActivityState({
+        name: null,
+        progress: 0,
+        totalTicks: 0,
+        currentTick: 0,
+        statChanges: {},
+        message: null,
+        animation: null,
+        mode: "normal",
+        type: "activity",
       });
-    }
-
-    // Reset activity state
-    setActivityState({
-      name: null,
-      progress: 0,
-      totalTicks: 0,
-      currentTick: 0,
-      statChanges: {},
-      message: null,
-      animation: null,
-      mode: "normal",
-      type: "activity",
-    });
-  }, []);
+    },
+    []
+  );
 
   // Start the activity
   const startActivity = (activityKey, mode = "normal") => {
-    if (activityState.name) return; // Jangan mulai aktivitas baru jika sudah ada yang berjalan
+    if (activityState.name) return;
     const definition = activityDefinitions[activityKey];
 
     // Check item requirements
@@ -203,51 +208,105 @@ export const GameProvider = ({ children }) => {
       return;
     }
 
-    // Check money requirement for purchases
-    if (
-      definition.statChanges.money &&
-      playerStats.money + definition.statChanges.money < 0
-    ) {
-      alert("Not enough money!");
+    // --- Money Logic ---
+    let baseMoneyChange = definition.statChanges.money || 0;
+    let moneyDeduction = 0;
+
+    if (mode === "fastforward") {
+      moneyDeduction = -FAST_FORWARD_FEE;
+    }
+
+    const totalMoneyChange = baseMoneyChange + moneyDeduction;
+
+    // Check overall money requirement
+    if (playerStats.money + totalMoneyChange < 0) {
+      alert(
+        `Not enough money! This action requires ${Math.abs(
+          totalMoneyChange
+        ).toLocaleString("id-ID")} (Base: ${Math.abs(
+          baseMoneyChange
+        ).toLocaleString("id-ID")} ${
+          mode === "fastforward"
+            ? `+ FF Fee: ${FAST_FORWARD_FEE.toLocaleString("id-ID")}`
+            : ""
+        })`
+      );
       return;
     }
 
-    // Set up the activity state
+    // Set up the activity state (using base stat changes for progress calculation)
     setActivityState({
       name: activityKey,
       progress: 0,
       totalTicks: definition.duration,
       currentTick: 0,
-      statChanges: definition.statChanges,
+      statChanges: definition.statChanges, // Base stats for incremental application
       message: definition.message,
       animation: definition.animation,
       mode: mode,
       type: definition.type || "activity",
     });
 
-    // Fast Forward Mode: complete instantly and advance time for the full duration
+    // --- Immediate Actions ---
     if (mode === "fastforward") {
-      completeActivity(activityKey, definition.statChanges);
+      // Apply all stats + total money change instantly
+      const finalStatChanges = {
+        ...definition.statChanges,
+        money: totalMoneyChange,
+      };
+
+      // Pass the activity key, the non-money stats for completion, and the total money change
+      completeActivity(activityKey, finalStatChanges, totalMoneyChange);
+
       setCurrentTime(
         (prev) =>
           new Date(prev.getTime() + definition.duration * 60 * 60 * 1000)
       );
+    } else {
+      // Normal Mode: Deduct/Gain initial money instantly, other stats apply over time.
+      if (baseMoneyChange !== 0) {
+        updateStats({ money: baseMoneyChange });
+      }
     }
   };
 
   // Handler for Fast Forward button (instant completion for Normal mode activity)
   const fastForwardActivity = () => {
     if (activityState.name && activityState.mode === "normal") {
-      const definition = activityDefinitions[activityState.name];
+      //const definition = activityDefinitions[activityState.name];
       const remainingTicks =
         activityState.totalTicks - activityState.currentTick;
+
+      // Check if money is sufficient for FF fee
+      if (playerStats.money - FAST_FORWARD_FEE < 0) {
+        alert(
+          `Not enough money for Fast Forward Fee: ${FAST_FORWARD_FEE.toLocaleString(
+            "id-ID"
+          )}!`
+        );
+        return;
+      }
 
       // Advance remaining time
       const timeToAdvance = remainingTicks * 60 * 60 * 1000;
       setCurrentTime((prev) => new Date(prev.getTime() + timeToAdvance));
 
-      // Apply remaining stats to complete the total intended change
-      completeActivity(activityState.name, definition.statChanges);
+      // Apply FF Fee instantly
+      updateStats({ money: -FAST_FORWARD_FEE });
+
+      // Reset state and count as performed
+      setActivitiesPerformed((prev) => prev + 1);
+      setActivityState({
+        name: null,
+        progress: 0,
+        totalTicks: 0,
+        currentTick: 0,
+        statChanges: {},
+        message: null,
+        animation: null,
+        mode: "normal",
+        type: "activity",
+      });
     }
   };
 
@@ -285,18 +344,21 @@ export const GameProvider = ({ children }) => {
             (nextTick / prevActivity.totalTicks) * 100
           );
 
-          // Calculate and apply partial stat changes per tick
+          // Calculate and apply partial stat changes per tick (EXCLUDING MONEY, which was applied instantly)
           const definition = activityDefinitions[prevActivity.name];
           const partialStatChanges = {};
           for (const stat in definition.statChanges) {
+            // Skip money as it was handled instantly in startActivity
+            if (stat === "money") continue;
+
             partialStatChanges[stat] =
               definition.statChanges[stat] / prevActivity.totalTicks;
           }
           updateStats(partialStatChanges);
 
           if (nextTick >= prevActivity.totalTicks) {
-            // Activity Complete (Full stat change now applied over ticks)
-            setActivitiesPerformed((prev) => prev + 1); // Track performed
+            // Activity Complete
+            setActivitiesPerformed((prev) => prev + 1);
 
             return {
               name: null,
@@ -328,7 +390,7 @@ export const GameProvider = ({ children }) => {
           sleep: Math.max(0, prev.sleep - 5),
           happiness: Math.max(0, prev.happiness - 5),
           cleanliness: Math.max(0, prev.cleanliness - 5),
-          lifeSatisfaction: Math.max(0, prev.lifeSatisfaction - 1), // Minor decay for score preview
+          lifeSatisfaction: Math.max(0, prev.lifeSatisfaction - 1),
         };
 
         // 3. Check Game Over
@@ -374,10 +436,11 @@ export const GameProvider = ({ children }) => {
         moveSpecificLocation,
         startActivity,
         fastForwardActivity,
-        activateItem, // Exporting as activateItem
+        activateItem,
         isGameOver,
         setIsGameOver,
         calculateFinalScore,
+        FAST_FORWARD_FEE,
       }}
     >
       {children}

@@ -250,8 +250,8 @@ export const gameSpecificAreas = {
         activities: ["BUY COCONUT", "BUY SOUVENIR", "BUY SURFBOARD"],
       },
       "Sea Area": { activities: ["SWIMMING", "SURFING"] },
-      Hotel: { activities: ["CHECK-IN"] }, // Placeholder for future activities
-      "Road (for going back)": { activities: ["GO BACK"] },
+      Hotel: { activities: ["CHECK-IN"] },
+      Exit: { activities: ["GO BACK"] },
     },
   },
   HomeArea: {
