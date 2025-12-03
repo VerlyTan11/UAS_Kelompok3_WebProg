@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { GameContext } from "./GameContext_Declarations";
+import { Modal, Button } from "react-bootstrap";
 
 import {
   initialStats,
@@ -27,6 +28,7 @@ export const GameProvider = ({ children }) => {
   const [specificLocation, setSpecificLocation] = useState(null);
   const [isGameOver, setIsGameOver] = useState(false);
   const [worldAreas, setWorldAreas] = useState(gameSpecificAreas);
+  const [modalMessage, setModalMessage] = useState(null);
 
   // Time States
   const [currentTime, setCurrentTime] = useState(getInitialTime());
@@ -345,27 +347,26 @@ export const GameProvider = ({ children }) => {
 
     if (!item || !item.usable || !item.inInventory) return;
 
-    // Jika item hanya bekerja di area tertentu
+    // Rule: area restriction
     if (item.onlyUsableIn && item.onlyUsableIn !== currentArea) {
-      alert(`${item.name} can only be used in ${item.onlyUsableIn}!`);
+      setModalMessage(`${item.name} can only be used in ${item.onlyUsableIn}!`);
       return;
     }
 
-    // Apply effect
+    // Apply stat effect
     updateStats(item.effect);
 
-    // consumable hilang setelah dipakai
     if (item.type === "consumable") {
       setPlayerItems((prevItems) =>
         prevItems.map((i) =>
           i.id === itemId ? { ...i, inInventory: false } : i
         )
       );
+      setModalMessage(`${item.name} has been consumed!`);
     }
 
-    // tool tidak hilang → dapat dipakai berulang kali
     if (item.type === "tool") {
-      console.log(`${item.name} used but remains in inventory.`);
+      setModalMessage(`${item.name} used successfully!`);
     }
   };
 
@@ -481,6 +482,28 @@ export const GameProvider = ({ children }) => {
       }}
     >
       {children}
+
+      <Modal
+        show={!!modalMessage}
+        onHide={() => setModalMessage(null)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Notification</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center">
+          <p style={{ fontSize: "1.2rem" }}>{modalMessage}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="primary"
+            className="w-100"
+            onClick={() => setModalMessage(null)}
+          >
+            OK
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </GameContext.Provider>
   );
 };
