@@ -26,6 +26,7 @@ export const GameProvider = ({ children }) => {
   const [currentArea, setCurrentArea] = useState("Home");
   const [specificLocation, setSpecificLocation] = useState(null);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [worldAreas, setWorldAreas] = useState(gameSpecificAreas);
 
   // Time States
   const [currentTime, setCurrentTime] = useState(getInitialTime());
@@ -125,7 +126,7 @@ export const GameProvider = ({ children }) => {
     if (specificLocation) {
       const specificAreaKey = `${currentArea}Area`;
       const currentLocationData =
-        gameSpecificAreas[specificAreaKey]?.locations[specificLocation];
+        worldAreas[specificAreaKey]?.locations[specificLocation];
 
       if (currentLocationData && currentLocationData[direction]) {
         const nextLocation = currentLocationData[direction];
@@ -152,7 +153,7 @@ export const GameProvider = ({ children }) => {
     if (gameAreas[areaName].specificArea) {
       const specificAreaKey = `${areaName}Area`;
       const firstLocation = Object.keys(
-        gameSpecificAreas[specificAreaKey].locations
+        worldAreas[specificAreaKey].locations
       )[0];
       setSpecificLocation(firstLocation);
     }
@@ -316,6 +317,29 @@ export const GameProvider = ({ children }) => {
     }
   };
 
+  const collectItem = (itemId) => {
+    setPlayerItems((prev) =>
+      prev.map((item) =>
+        item.id === itemId ? { ...item, inInventory: true } : item
+      )
+    );
+
+    // remove item from world (Specific Area)
+    setWorldAreas((prev) => {
+      const updated = { ...prev };
+      const area = updated[`${currentArea}Area`];
+
+      if (!area) return prev;
+
+      const loc = area.locations[specificLocation];
+      if (!loc?.items) return prev;
+
+      loc.items = loc.items.filter((i) => i !== itemId);
+
+      return updated;
+    });
+  };
+
   const activateItem = (itemId) => {
     const item = playerItems.find((i) => i.id === itemId);
     if (!item || !item.usable || !item.inInventory) return;
@@ -423,7 +447,6 @@ export const GameProvider = ({ children }) => {
         currentArea,
         specificLocation,
         gameAreas,
-        gameSpecificAreas,
         activityState,
         visitedAreas,
         activitiesPerformed,
@@ -439,6 +462,8 @@ export const GameProvider = ({ children }) => {
         setIsGameOver,
         calculateFinalScore,
         FAST_FORWARD_FEE,
+        collectItem,
+        worldAreas,
       }}
     >
       {children}

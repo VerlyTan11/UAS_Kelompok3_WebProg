@@ -155,20 +155,21 @@ const SpecificArea = () => {
     moveSpecificLocation,
     currentArea,
     specificLocation,
-    gameSpecificAreas,
+    worldAreas,
     startActivity,
     activityState,
     fastForwardActivity,
     playerItems,
     FAST_FORWARD_FEE,
     playerStats,
+    collectItem,
   } = useGame();
 
   // State baru untuk mengontrol modal konfirmasi FF
   const [confirmFF, setConfirmFF] = useState(null);
 
   const specificAreaKey = `${currentArea}Area`; // e.g., 'BeachArea'
-  const areaData = gameSpecificAreas[specificAreaKey] || {};
+  const areaData = worldAreas[specificAreaKey] || {};
   const locations = areaData.locations || {};
 
   let positions = {};
@@ -176,9 +177,9 @@ const SpecificArea = () => {
   if (currentArea === "Beach") {
     positions = {
       "Sands Area": { top: "30%", left: "20%" },
-      Exit: { top: "50%", left: "45%" }, 
+      Exit: { top: "50%", left: "45%" },
       "Shop Area": { top: "70%", left: "25%" },
-      "Hotel": { top: "30%", left: "75%" },
+      Hotel: { top: "30%", left: "75%" },
       "Sea Area": { top: "70%", left: "70%" },
     };
   } else if (currentArea === "Home") {
@@ -444,7 +445,8 @@ const SpecificArea = () => {
                                 : ""
                             }
                           >
-                            Fast Foward Mode ({FAST_FORWARD_FEE.toLocaleString("id-ID")})
+                            Fast Foward Mode (
+                            {FAST_FORWARD_FEE.toLocaleString("id-ID")})
                           </Button>
                         </div>
                         {!isAvailable &&
@@ -468,6 +470,28 @@ const SpecificArea = () => {
                   })}
                 </Card>
               )}
+
+            {/* Collectible Item Display */}
+            {locations[specificLocation]?.items?.map((itemId) => {
+              const item = playerItems.find((i) => i.id === itemId);
+
+              return (
+                <Card
+                  key={itemId}
+                  className="position-absolute p-2 cursor-target shadow"
+                  style={{ bottom: "20px", left: "20px", width: "150px" }}
+                  onClick={() => collectItem(itemId)}
+                >
+                  <div className="text-center" style={{ fontSize: "2rem" }}>
+                    {item.icon}
+                  </div>
+                  <p className="text-center small">{item.name}</p>
+                  <Button variant="success" size="sm">
+                    Collect
+                  </Button>
+                </Card>
+              );
+            })}
           </div>
         ))}
       </div>

@@ -50,6 +50,24 @@ export const initialItems = [
     effect: {},
     usable: false,
   },
+  {
+    id: "fishing_rod",
+    name: "Fishing Rod",
+    icon: "🎣",
+    usable: true,
+    inInventory: false,
+    type: "tool",
+    effect: { meal: 10 },
+    onlyUsableIn: "Lake", // hanya lake
+  },
+  {
+    id: "shell",
+    name: "Sea Shell",
+    icon: "🐚",
+    usable: false,
+    inInventory: false,
+    type: "collectible",
+  },
 ];
 
 // Area connections for movement
@@ -266,6 +284,7 @@ export const gameSpecificAreas = {
       },
       "Sea Area": {
         activities: ["SWIMMING", "SURFING"],
+        items: ["shell"],
         left: "Shop Area",
         up: "Hotel",
         down: "Exit",
@@ -337,6 +356,7 @@ export const gameSpecificAreas = {
     locations: {
       "Fishing Spot": {
         activities: ["FISHING"],
+        items: ["fishing_rod"],
         down: "Exit",
         up: "Exit",
         left: "Exit",
