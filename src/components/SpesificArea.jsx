@@ -444,7 +444,7 @@ const SpecificArea = () => {
                                 : ""
                             }
                           >
-                            FF (💰{FAST_FORWARD_FEE.toLocaleString("id-ID")})
+                            Fast Foward Mode ({FAST_FORWARD_FEE.toLocaleString("id-ID")})
                           </Button>
                         </div>
                         {!isAvailable &&

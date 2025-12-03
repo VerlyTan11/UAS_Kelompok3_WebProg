@@ -20,14 +20,6 @@ const HeaderBar = () => {
     return "bg-danger";
   };
 
-  // New stat for score preview
-  const lifeSatisfactionBarColor = (value) => {
-    if (value > 80) return "bg-primary";
-    if (value > 50) return "bg-info";
-    if (value > 25) return "bg-warning";
-    return "bg-danger";
-  };
-
   return (
     <div
       className="border border-dark mb-3"
@@ -75,26 +67,6 @@ const HeaderBar = () => {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Life Satisfaction Score Preview */}
-      <div className="d-flex justify-content-center align-items-center px-3 py-2">
-        <span className="me-1" title="Life Satisfaction Score">
-          ❤️
-        </span>
-        <strong className="me-2">Life Satisfaction:</strong>
-        <div
-          className="progress flex-grow-1"
-          style={{ height: "10px", maxWidth: "400px" }}
-        >
-          <div
-            className={`progress-bar ${lifeSatisfactionBarColor(
-              playerStats.lifeSatisfaction
-            )}`}
-            style={{ width: `${playerStats.lifeSatisfaction}%` }}
-          />
-        </div>
-        <strong className="ms-2">{playerStats.lifeSatisfaction}%</strong>
       </div>
     </div>
   );

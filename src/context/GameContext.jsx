@@ -131,9 +131,7 @@ export const GameProvider = ({ children }) => {
         const nextLocation = currentLocationData[direction];
 
         // Jika tujuan adalah Exit gunakan moveSpecificLocation
-        if (
-          nextLocation.includes("Exit")
-        ) {
+        if (nextLocation.includes("Exit")) {
           moveSpecificLocation(nextLocation);
         } else {
           // Pindah ke lokasi spesifik baru
@@ -162,9 +160,7 @@ export const GameProvider = ({ children }) => {
 
   const moveSpecificLocation = (locationName) => {
     // FIX: Saat Exit dipanggil melalui klik/keyboard, kembali ke Main Area
-    if (
-      locationName.includes("Exit")
-    ) {
+    if (locationName.includes("Exit")) {
       moveArea(currentArea);
       setSpecificLocation(null);
     } else {
@@ -247,7 +243,9 @@ export const GameProvider = ({ children }) => {
           baseMoneyChange
         ).toLocaleString("id-ID")} ${
           mode === "fastforward"
-            ? `+ FF Fee: ${FAST_FORWARD_FEE.toLocaleString("id-ID")}`
+            ? `+ Fast Foward Mode Fee: ${FAST_FORWARD_FEE.toLocaleString(
+                "id-ID"
+              )}`
             : ""
         })`
       );
@@ -387,11 +385,10 @@ export const GameProvider = ({ children }) => {
         const updated = {
           ...prev,
           // Decay Rate: -5 per tick (1 hour game time)
-          meal: Math.max(0, prev.meal - 2),
-          sleep: Math.max(0, prev.sleep - 2),
-          happiness: Math.max(0, prev.happiness - 2),
-          cleanliness: Math.max(0, prev.cleanliness - 2),
-          lifeSatisfaction: Math.max(0, prev.lifeSatisfaction - 0.5),
+          meal: Math.max(0, prev.meal - 0.5),
+          sleep: Math.max(0, prev.sleep - 0.5),
+          happiness: Math.max(0, prev.happiness - 0.5),
+          cleanliness: Math.max(0, prev.cleanliness - 0.5),
         };
 
         // 3. Check Game Over
