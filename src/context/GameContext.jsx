@@ -342,16 +342,30 @@ export const GameProvider = ({ children }) => {
 
   const activateItem = (itemId) => {
     const item = playerItems.find((i) => i.id === itemId);
+
     if (!item || !item.usable || !item.inInventory) return;
 
+    // Jika item hanya bekerja di area tertentu
+    if (item.onlyUsableIn && item.onlyUsableIn !== currentArea) {
+      alert(`${item.name} can only be used in ${item.onlyUsableIn}!`);
+      return;
+    }
+
+    // Apply effect
     updateStats(item.effect);
 
+    // consumable hilang setelah dipakai
     if (item.type === "consumable") {
       setPlayerItems((prevItems) =>
         prevItems.map((i) =>
           i.id === itemId ? { ...i, inInventory: false } : i
         )
       );
+    }
+
+    // tool tidak hilang → dapat dipakai berulang kali
+    if (item.type === "tool") {
+      console.log(`${item.name} used but remains in inventory.`);
     }
   };
 

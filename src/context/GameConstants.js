@@ -11,54 +11,23 @@ export const initialStats = {
 
 export const initialItems = [
   {
-    id: "pegasus",
-    name: "Pegasus",
-    icon: "🐎",
-    isEquipped: false,
-    inInventory: true,
-    type: "consumable",
-    effect: { happiness: 10, cleanliness: -5 },
-    usable: true,
-  },
-  {
-    id: "broken_apple",
-    name: "Broken Apple",
-    icon: "🍎",
-    isEquipped: false,
-    inInventory: true,
-    type: "consumable",
-    effect: { meal: 15, sleep: -5 },
-    usable: true,
-  },
-  {
-    id: "baby",
-    name: "Baby",
-    icon: "👶",
-    isEquipped: false,
-    inInventory: true,
-    type: "permanent",
-    effect: { happiness: 5, money: -1000 },
-    usable: false,
-  },
-  {
-    id: "surfboard",
-    name: "Surfboard",
-    icon: "🏄",
-    isEquipped: false,
-    inInventory: false,
-    type: "gear",
-    effect: {},
-    usable: false,
-  },
-  {
     id: "fishing_rod",
     name: "Fishing Rod",
     icon: "🎣",
     usable: true,
     inInventory: false,
-    type: "tool",
+    type: "tool", // <--- kalau tool: repeat use
     effect: { meal: 10 },
-    onlyUsableIn: "Lake", // hanya lake
+    onlyUsableIn: "Lake",
+  },
+  {
+    id: "broken_apple",
+    name: "Broken Apple",
+    icon: "🍎",
+    usable: true,
+    inInventory: true,
+    type: "consumable", // <--- sekali pakai
+    effect: { meal: 15, sleep: -5 },
   },
   {
     id: "shell",
@@ -66,7 +35,7 @@ export const initialItems = [
     icon: "🐚",
     usable: false,
     inInventory: false,
-    type: "collectible",
+    type: "collectible", // <--- tidak pernah dipakai
   },
 ];
 
