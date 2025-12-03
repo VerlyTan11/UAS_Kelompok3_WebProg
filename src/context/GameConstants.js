@@ -180,6 +180,14 @@ export const activityDefinitions = {
     animation: "🌊",
     type: "activity",
   },
+  "Hotel - CHECK-IN": {
+    duration: 2,
+    statChanges: { sleep: 20, cleanliness: 10, lifeSatisfaction: 5 },
+    message: "Checking into the hotel...",
+    requiredItems: [],
+    animation: "🏨",
+    type: "activity",
+  },
   // Home Activities
   "Kitchen - EAT": {
     duration: 2,
@@ -262,7 +270,7 @@ export const gameSpecificAreas = {
         up: "Hotel",
         down: "Exit",
       },
-      "Hotel": {
+      Hotel: {
         activities: ["CHECK-IN"],
         left: "Sands Area",
         down: "Sea Area",

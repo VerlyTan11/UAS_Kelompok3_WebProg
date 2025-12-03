@@ -178,7 +178,7 @@ const SpecificArea = () => {
       "Sands Area": { top: "30%", left: "20%" },
       Exit: { top: "50%", left: "45%" }, 
       "Shop Area": { top: "70%", left: "25%" },
-      Hotel: { top: "30%", left: "75%" },
+      "Hotel": { top: "30%", left: "75%" },
       "Sea Area": { top: "70%", left: "70%" },
     };
   } else if (currentArea === "Home") {
