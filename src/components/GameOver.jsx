@@ -23,13 +23,11 @@ const GameOver = () => {
 
   return (
     <div
+      // Gunakan Bootstrap utility classes untuk centering dan responsif
+      className="text-center p-4 border border-dark bg-white shadow-lg mx-auto my-5"
       style={{
-        textAlign: "center",
-        padding: "40px",
-        border: "3px solid black",
-        background: "white",
-        maxWidth: "600px",
-        margin: "40px auto",
+        maxWidth: "90%", // Lebar responsif
+        width: "600px",
       }}
     >
       <h1>GAME OVER</h1>
@@ -55,7 +53,7 @@ const GameOver = () => {
       </p>
 
       <button
-        className="btn btn-primary mt-3 cursor-target"
+        className="btn btn-primary mt-3 cursor-target w-75" // w-75 untuk responsif
         onClick={() => window.location.reload()}
       >
         Restart Game

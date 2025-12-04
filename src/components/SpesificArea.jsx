@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useGame } from "../context/useGame";
 import { Button, Card, ProgressBar } from "react-bootstrap";
 import { activityDefinitions } from "../context/GameConstants";
+// Import modal baru
+import ActivitySelectionModal from "./ActivitySelectionModal";
 
 // Komponen untuk menampilkan aktivitas yang sedang berlangsung
 const ActivityPanel = ({ activityState, fastForwardActivity }) => {
@@ -23,7 +25,7 @@ const ActivityPanel = ({ activityState, fastForwardActivity }) => {
       return (
         <Button
           variant="warning"
-          className="mt-3 cursor-target"
+          className="mt-3 cursor-target w-100" // w-100 agar tombol penuh
           onClick={fastForwardActivity}
         >
           Fast Forward (Instant Finish) (Cost: 💰
@@ -42,7 +44,8 @@ const ActivityPanel = ({ activityState, fastForwardActivity }) => {
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        width: "300px",
+        width: "90%", // Gunakan persentase untuk responsif
+        maxWidth: "300px", // Batasi lebar maksimum
         zIndex: 200,
         textAlign: "center",
       }}
@@ -94,8 +97,9 @@ const FastForwardConfirmModal = ({
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        width: "350px",
-        zIndex: 300, // ZIndex tinggi agar berada di atas overlay
+        width: "90%", // Gunakan persentase untuk responsif
+        maxWidth: "350px", // Batasi lebar maksimum
+        zIndex: 300,
         textAlign: "center",
         borderWidth: "4px",
       }}
@@ -129,17 +133,19 @@ const FastForwardConfirmModal = ({
         </p>
       </div>
 
-      <div className="d-flex justify-content-between">
+      <div className="d-flex justify-content-between flex-column flex-sm-row">
+        {" "}
+        {/* Flex responsif untuk tombol */}
         <Button
           variant="secondary"
-          className="cursor-target flex-fill me-2"
+          className="cursor-target flex-fill me-sm-2 mb-2 mb-sm-0" // mb-2 di HP
           onClick={onCancel}
         >
           Batal
         </Button>
         <Button
           variant="primary"
-          className="cursor-target flex-fill ms-2"
+          className="cursor-target flex-fill ms-sm-2"
           onClick={() => onConfirm(activityKey, "fastforward")}
         >
           Konfirmasi & FF!
@@ -168,6 +174,9 @@ const SpecificArea = () => {
   // State baru untuk mengontrol modal konfirmasi FF
   const [confirmFF, setConfirmFF] = useState(null);
 
+  // State baru untuk mengontrol modal pemilihan aktivitas
+  const [showActivityModal, setShowActivityModal] = useState(false); // <-- BARU
+
   const specificAreaKey = `${currentArea}Area`; // e.g., 'BeachArea'
   const areaData = worldAreas[specificAreaKey] || {};
   const locations = areaData.locations || {};
@@ -175,12 +184,13 @@ const SpecificArea = () => {
   let positions = {};
 
   if (currentArea === "Beach") {
+    // Penyesuaian posisi agar tidak terlalu mepet
     positions = {
-      "Sands Area": { top: "30%", left: "20%" },
+      "Sands Area": { top: "25%", left: "15%" },
       Exit: { top: "50%", left: "45%" },
-      "Shop Area": { top: "70%", left: "25%" },
-      Hotel: { top: "30%", left: "75%" },
-      "Sea Area": { top: "70%", left: "70%" },
+      "Shop Area": { top: "75%", left: "20%" },
+      Hotel: { top: "25%", left: "75%" },
+      "Sea Area": { top: "75%", left: "70%" },
     };
   } else if (currentArea === "Home") {
     positions = {
@@ -218,56 +228,54 @@ const SpecificArea = () => {
     backgroundColor: "#eee",
     padding: "5px",
     textAlign: "center",
-    opacity: activityState.name || confirmFF ? 0.5 : 1, // Blur areas when activity or modal is ongoing
-    pointerEvents: activityState.name || confirmFF ? "none" : "auto", // Disable clicks when activity or modal is ongoing
+    // Blur areas when activity or modal is ongoing (termasuk modal baru)
+    opacity: activityState.name || confirmFF || showActivityModal ? 0.5 : 1,
+    // Disable clicks when activity or modal is ongoing (termasuk modal baru)
+    pointerEvents:
+      activityState.name || confirmFF || showActivityModal ? "none" : "auto",
   });
 
   // Ambil daftar aktivitas untuk lokasi spesifik saat ini
   const currentActivities = locations[specificLocation]?.activities || [];
 
-  // Cek apakah item yang diperlukan tersedia
-  const isActivityAvailable = (activityName) => {
-    const activityKey = `${specificLocation} - ${activityName}`;
-    const definition = activityDefinitions[activityKey];
-    // Pastikan requiredItems diakses dengan aman
-    if (!definition || !definition.requiredItems?.length) return true;
+  // Logic untuk membuka modal aktivitas saat lokasi berpindah
+  const moveAndShowActivity = (locationName) => {
+    // Panggil fungsi pindah lokasi
+    moveSpecificLocation(locationName);
 
-    return definition.requiredItems.every((itemReq) =>
-      playerItems.some((item) => item.id === itemReq && item.inInventory)
-    );
+    // Jika lokasi yang dituju BUKAN Exit dan memiliki aktivitas, tampilkan modal.
+    if (
+      !locationName.includes("Exit") &&
+      locations[locationName]?.activities?.length > 0
+    ) {
+      setShowActivityModal(true);
+    } else {
+      setShowActivityModal(false);
+    }
   };
 
-  // Cek apakah ada uang yang cukup untuk Fast Forward
-  const isFastForwardAffordable = () => playerStats.money >= FAST_FORWARD_FEE;
-
-  // Cek apakah ada uang yang cukup untuk biaya dasar aktivitas
-  const isBaseCostAffordable = (activityKey) => {
-    // FIX: Menggunakan optional chaining (?.) untuk mengakses properti bersarang
-    const definition = activityDefinitions[activityKey];
-    const baseMoneyCost = definition?.statChanges?.money || 0;
-    // Perhatikan: baseMoneyCost negatif (biaya)
-    return playerStats.money + baseMoneyCost >= 0;
-  };
+  // --- HAPUS: isActivityAvailable dan isBaseCostAffordable dari sini ---
+  // Logika pengecekan ketersediaan sekarang ditangani di ActivitySelectionModal
 
   // Logic konfirmasi dan memulai aktivitas
   const handleConfirmFF = (activityKey, mode) => {
-    setConfirmFF(null); // Tutup modal
+    setConfirmFF(null); // Tutup modal konfirmasi FF
     // Lanjutkan ke fungsi startActivity di GameContext
     startActivity(activityKey, mode);
   };
 
   const handleCancelFF = () => {
-    setConfirmFF(null); // Tutup modal
+    setConfirmFF(null); // Tutup modal konfirmasi FF
   };
 
   const handleActivityStart = (activityName, mode) => {
     const activityKey = `${specificLocation} - ${activityName}`;
-    // FIX: Menggunakan optional chaining (?.) untuk mengakses properti bersarang
     const definition = activityDefinitions[activityKey];
     const baseMoneyCost = definition?.statChanges?.money || 0;
 
+    setShowActivityModal(false); // Tutup Modal Pemilihan Aktivitas
+
     if (mode === "fastforward") {
-      // Hitung total biaya yang dikeluarkan (absolute value)
       const totalCost = Math.abs(baseMoneyCost) + FAST_FORWARD_FEE;
       if (playerStats.money < totalCost) {
         alert(
@@ -299,7 +307,7 @@ const SpecificArea = () => {
   return (
     <div
       className="d-flex flex-column flex-grow-1 position-relative"
-      style={{ height: "500px" }}
+      style={{ height: "100%" }}
     >
       <div className="text-center py-2 bg-light border-top border-dark">
         <small>
@@ -308,11 +316,20 @@ const SpecificArea = () => {
         </small>
       </div>
       <div style={{ position: "relative", flexGrow: 1 }}>
+        {/* Activity Selection Modal (BARU) */}
+        <ActivitySelectionModal
+          show={showActivityModal}
+          handleClose={() => setShowActivityModal(false)}
+          specificLocation={specificLocation}
+          currentActivities={currentActivities}
+          handleActivityStart={handleActivityStart}
+        />
+
         {/* Overlay for confirmation modal */}
         {confirmFF && (
           <div
             style={{
-              position: "relative",
+              position: "absolute",
               top: 0,
               left: 0,
               right: 0,
@@ -335,7 +352,7 @@ const SpecificArea = () => {
           />
         )}
 
-        {/* Panel Aktivitas Sedang Berlangsung (Hanya muncul jika activityState.name ada) */}
+        {/* Panel Aktivitas Sedang Berlangsung */}
         <ActivityPanel
           activityState={activityState}
           fastForwardActivity={fastForwardActivity}
@@ -346,7 +363,8 @@ const SpecificArea = () => {
           <div
             key={locationName}
             style={getAreaStyle(locationName)}
-            onClick={() => moveSpecificLocation(locationName)}
+            // Ganti onClick untuk memanggil fungsi baru yang membuka modal
+            onClick={() => moveAndShowActivity(locationName)}
             className="shadow-sm cursor-target"
           >
             <span className="text-dark">
@@ -370,130 +388,35 @@ const SpecificArea = () => {
                 🧍
               </div>
             )}
-
-            {/* Tombol Aktivitas (Hanya muncul di lokasi spesifik saat ini) */}
-            {locationName === specificLocation &&
-              currentActivities.length > 0 &&
-              !locationName.includes("Exit") && (
-                <Card
-                  className="position-absolute p-2 shadow"
-                  style={{
-                    bottom: "10px",
-                    right: "10px",
-                    width: "250px",
-                    zIndex: 10,
-                    opacity: activityState.name || confirmFF ? 0.5 : 1, // Blur buttons when activity or modal is ongoing
-                    pointerEvents:
-                      activityState.name || confirmFF ? "none" : "auto", // Disable clicks when activity or modal is ongoing
-                  }}
-                >
-                  <h6>Activities in {locationName}:</h6>
-                  {currentActivities.map((activityName) => {
-                    const activityKey = `${specificLocation} - ${activityName}`;
-                    const isAvailable =
-                      isActivityAvailable(activityName) &&
-                      isBaseCostAffordable(activityKey);
-                    const isFastForwardPossible =
-                      isAvailable && isFastForwardAffordable();
-                    const definition = activityDefinitions[activityKey] || {};
-                    const moneyText = definition.statChanges?.money // Safe access
-                      ? ` (Cost: 💰${Math.abs(
-                          definition.statChanges.money
-                        ).toLocaleString("id-ID")})`
-                      : "";
-
-                    return (
-                      <div
-                        key={activityName}
-                        className="mb-2 border-bottom pb-1"
-                      >
-                        <span className="me-2" style={{ fontWeight: "bold" }}>
-                          {activityName} {definition.animation}
-                          {moneyText}
-                        </span>
-                        <div className="d-flex justify-content-between">
-                          <Button
-                            variant={
-                              isAvailable ? "outline-dark" : "outline-secondary"
-                            }
-                            size="sm"
-                            className="cursor-target flex-fill me-1"
-                            onClick={() =>
-                              handleActivityStart(activityName, "normal")
-                            }
-                            disabled={!isAvailable}
-                          >
-                            Normal Mode
-                          </Button>
-                          <Button
-                            variant={
-                              isFastForwardPossible
-                                ? "outline-primary"
-                                : "outline-secondary"
-                            }
-                            size="sm"
-                            className="cursor-target flex-fill"
-                            onClick={() =>
-                              handleActivityStart(activityName, "fastforward")
-                            }
-                            disabled={!isFastForwardPossible}
-                            title={
-                              !isFastForwardPossible && isAvailable
-                                ? `Needs 💰${FAST_FORWARD_FEE.toLocaleString(
-                                    "id-ID"
-                                  )} for Fast Forward Fee`
-                                : ""
-                            }
-                          >
-                            Fast Foward Mode (
-                            {FAST_FORWARD_FEE.toLocaleString("id-ID")})
-                          </Button>
-                        </div>
-                        {!isAvailable &&
-                          (definition.requiredItems?.length > 0 || // Safe access
-                            !isBaseCostAffordable(activityKey)) && (
-                            <small className="text-danger">
-                              (
-                              {definition.requiredItems?.length > 0
-                                ? `Needs: ${definition.requiredItems.join(
-                                    ", "
-                                  )}`
-                                : ""}
-                              {!isBaseCostAffordable(activityKey)
-                                ? " Not enough money for base cost!"
-                                : ""}
-                              )
-                            </small>
-                          )}
-                      </div>
-                    );
-                  })}
-                </Card>
-              )}
-
-            {/* Collectible Item Display */}
-            {locations[specificLocation]?.items?.map((itemId) => {
-              const item = playerItems.find((i) => i.id === itemId);
-
-              return (
-                <Card
-                  key={itemId}
-                  className="position-absolute p-2 cursor-target shadow"
-                  style={{ bottom: "20px", left: "20px", width: "150px" }}
-                  onClick={() => collectItem(itemId)}
-                >
-                  <div className="text-center" style={{ fontSize: "2rem" }}>
-                    {item.icon}
-                  </div>
-                  <p className="text-center small">{item.name}</p>
-                  <Button variant="success" size="sm">
-                    Collect
-                  </Button>
-                </Card>
-              );
-            })}
           </div>
         ))}
+
+        {/* COLLECTIBLE ITEM DISPLAY (Dipertahankan) */}
+        {locations[specificLocation]?.items?.map((itemId) => {
+          const item = playerItems.find((i) => i.id === itemId);
+
+          return (
+            <Card
+              key={itemId}
+              className="position-absolute p-2 cursor-target shadow"
+              style={{
+                bottom: "20px",
+                left: "20px",
+                width: "150px",
+                zIndex: 11,
+              }}
+              onClick={() => collectItem(itemId)}
+            >
+              <div className="text-center" style={{ fontSize: "2rem" }}>
+                {item.icon}
+              </div>
+              <p className="text-center small">{item.name}</p>
+              <Button variant="success" size="sm" className="w-100">
+                Collect
+              </Button>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

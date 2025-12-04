@@ -3,6 +3,7 @@ import { useGame } from "../context/useGame";
 import PlayerItems from "./PlayerItems";
 import SpecificArea from "./SpesificArea";
 import { Button } from "react-bootstrap";
+import BurgerMenu from "./BurgerMenu";
 
 // Komponen Kontrol Gerakan Global (On-Screen Arrows)
 const MovementControlsGlobal = () => {
@@ -20,11 +21,12 @@ const MovementControlsGlobal = () => {
 
   return (
     <div
-      className="d-flex justify-content-center align-items-center bg-light shadow-lg border border-dark rounded-3 p-2"
+      // HANYA TAMPIL di layar BESAR (md ke atas)
+      className="d-none d-md-flex justify-content-center align-items-center bg-light shadow-lg border border-dark rounded-3 p-2"
       style={{
         position: "absolute",
-        bottom: "10px",
-        right: "135px",
+        bottom: "150px",
+        right: "25px",
         zIndex: 100,
       }}
     >
@@ -103,25 +105,33 @@ const GameArena = () => {
 
   const areaData = gameAreas[currentArea];
 
+  const arenaStyle = {
+    height: "600px",
+    maxHeight: "80vh",
+    width: "100%",
+    maxWidth: "1000px",
+    margin: "0 auto",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+    opacity: activityState.name ? 0.8 : 1,
+    position: "relative",
+  };
+
   // Jika sudah di area spesifik (e.g., Beach), tampilkan SpecificArea
   if (specificLocation) {
     return (
       <div
         className="d-flex"
         style={{
-          height: "600px",
-          maxWidth: "1000px",
-          margin: "0 auto",
-          backgroundImage: `url(/${areaData.bg})`, // Dynamic background
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          boxShadow: "0 0 10px rgba(0,0,0,0.5)",
-          opacity: activityState.name ? 0.8 : 1, // Sedikit buram saat aktivitas berlangsung
+          ...arenaStyle,
+          backgroundImage: `url(/${areaData.bg})`,
         }}
       >
         <SpecificArea />
         <PlayerItems />
         <MovementControlsGlobal />
+        <BurgerMenu />
       </div>
     );
   }
@@ -132,7 +142,7 @@ const GameArena = () => {
     Beach: { top: "15%", left: "60%" },
     Temple: { top: "35%", left: "32%" },
     Lake: { top: "55%", left: "5%" },
-    Mountain: { top: "55%", left: "70%" },
+    Mountain: { top: "60%", left: "60%" },
   };
 
   const getAreaStyle = (areaName) => ({
@@ -151,6 +161,7 @@ const GameArena = () => {
     boxShadow: "2px 2px 5px rgba(0,0,0,0.2)",
     fontWeight: areaName === currentArea ? "bold" : "normal",
     transition: "opacity 0.3s",
+    // HAPUS BAGIAN MEDIA QUERY YANG ERROR DI SINI
   });
 
   // Handle klik area
@@ -170,7 +181,6 @@ const GameArena = () => {
     moveArea(areaName);
   };
 
-  // Latar belakang untuk Main Arena
   const mainArenaBackground = areaData.bg || "home.jpg";
   const isActivityOngoing = !!activityState.name;
 
@@ -178,20 +188,14 @@ const GameArena = () => {
     <div
       className="d-flex"
       style={{
-        height: "500px",
-        maxWidth: "1000px",
-        margin: "0 auto",
-        backgroundImage: `url(/${mainArenaBackground})`, // Dynamic background
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        boxShadow: "0 0 10px rgba(0,0,0,0.5)",
-        opacity: isActivityOngoing ? 0.8 : 1, // Sedikit buram saat aktivitas berlangsung
+        ...arenaStyle,
+        backgroundImage: `url(/${mainArenaBackground})`,
       }}
     >
-      {/* Arena Kiri */}
+      {/* Arena Kiri - Kontainer Peta, sekarang hanya berisi Overlay Peta dan Elemen */}
       <div
         className="flex-grow-1 position-relative"
-        style={{ height: "100%", backgroundColor: "rgba(255, 255, 255, 0.7)" }} // Overlay putih agar lingkaran terlihat
+        style={{ height: "100%", backgroundColor: "rgba(255, 255, 255, 0.7)" }} // Overlay Peta
       >
         {/* Pesan Aktivitas Jika Sedang Berlangsung */}
         {isActivityOngoing && (
@@ -250,11 +254,15 @@ const GameArena = () => {
           </div>
         ))}
       </div>
-      {/* Item Sidebar Kanan */}
+
+      {/* Item Sidebar Kanan (Hanya tampil di Desktop) */}
       <PlayerItems />
 
-      {/* Tombol Panah Global di kanan bawah Arena */}
+      {/* Tombol Panah Global (Hanya tampil di Desktop) */}
       <MovementControlsGlobal />
+
+      {/* Burger Menu (Tampil di Mobile) */}
+      <BurgerMenu />
     </div>
   );
 };

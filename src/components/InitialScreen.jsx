@@ -37,17 +37,20 @@ const InitialScreen = () => {
 
   return (
     <div
+      // Gunakan minHeight: "100vh" agar selalu di tengah halaman pada layar manapun
       className="d-flex justify-content-center align-items-center"
-      style={{ minHeight: "60vh" }}
+      style={{ minHeight: "100vh" }}
     >
       <Card
         style={{
+          // Gunakan max-width agar responsif dan padding responsif
+          maxWidth: "90%",
           width: "25rem",
           border: "none",
           borderRadius: "20px",
           paddingTop: "10px",
         }}
-        className="text-center shadow"
+        className="text-center shadow mx-auto my-3" // mx-auto dan my-3 untuk responsif
       >
         <div className="text-center py-4 border-bottom border-dark">
           <h3 className="mb-0">
@@ -64,14 +67,14 @@ const InitialScreen = () => {
         </div>
         {/* Avatar Carousel */}
         <div className="position-relative mt-3">
-          {/* Tombol kiri */}
+          {/* Tombol kiri - Sesuaikan posisi kiri agar responsif */}
           <Button
             variant="light"
             onClick={handlePrev}
             className="shadow-sm cursor-target"
             style={{
               position: "absolute",
-              left: "70px",
+              left: "15%", // Ganti 70px dengan persentase untuk responsif
               top: "50%",
               transform: "translateY(-50%)",
               borderRadius: "50%",
@@ -94,14 +97,14 @@ const InitialScreen = () => {
             }}
           />
 
-          {/* Tombol kanan */}
+          {/* Tombol kanan - Sesuaikan posisi kanan agar responsif */}
           <Button
             variant="light"
             onClick={handleNext}
             className="shadow-sm cursor-target"
             style={{
               position: "absolute",
-              right: "70px",
+              right: "15%", // Ganti 70px dengan persentase untuk responsif
               top: "50%",
               transform: "translateY(-50%)",
               borderRadius: "50%",
