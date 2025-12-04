@@ -58,23 +58,25 @@ const HeaderBar = () => {
       </div>
 
       {/* Stats Bar: Stats dan Tombol Burger */}
-      <div className="d-flex flex-wrap justify-content-between align-items-center px-3 py-2 border-bottom">
+      {/* Gunakan justify-content-start agar tombol burger tidak terdorong ke paling kanan oleh stats */}
+      <div className="d-flex flex-wrap justify-content-start align-items-center px-3 py-2 border-bottom">
         {/* Stats - Gunakan row dan col classes untuk responsif */}
-        <div className="row g-1 flex-grow-1 me-md-3">
+        {/* Kurangi me-md-3 agar ada ruang untuk tombol burger di mobile jika terjadi wrap */}
+        <div className="row g-1 flex-grow-1 me-2">
           {[
             { icon: "🍴", val: playerStats.meal, label: "Meal" },
             { icon: "🛏️", val: playerStats.sleep, label: "Sleep" },
             { icon: "😊", val: playerStats.happiness, label: "Happiness" },
             { icon: "🫧", val: playerStats.cleanliness, label: "Cleanliness" },
           ].map((item, i) => (
-            // FIX: Gunakan col-6 untuk 2 kolom di mobile, col-md-3 untuk 4 kolom di desktop
+            // col-6: 50% lebar di mobile/tablet. col-md-3: 25% lebar di desktop
             <div key={i} className="col-6 col-md-3 my-1" title={item.label}>
               <div className="d-flex align-items-center justify-content-start pe-2">
                 <span className="me-1">{item.icon}</span>
                 <div
-                  // FIX: Hapus properti width, gunakan flex-grow-1
+                  // FIX: progress bar menggunakan flex-grow-1 untuk mengisi ruang yang tersedia
                   className="progress flex-grow-1"
-                  style={{ height: "10px", maxWidth: "100px" }} // Batasi MaxWidth agar tidak terlalu panjang di layar sangat besar
+                  style={{ height: "10px" }} // Hapus maxWidth
                 >
                   <div
                     className={`progress-bar ${getBarColor(item.val)}`}
@@ -87,16 +89,21 @@ const HeaderBar = () => {
         </div>
 
         {/* Tombol Burger - MENGGUNAKAN IMAGE KUSTOM */}
+        {/* Posisikan tombol ini di luar 'row' tapi di dalam 'd-flex flex-wrap' agar bisa diletakkan di baris kedua jika perlu */}
         <Button
+          // FIX: Ganti kembali ke variant dark/default agar warnanya terlihat (atau hapus bg/border override)
           className="ms-3 d-md-none cursor-target bg-white border-0"
           onClick={() => setIsBurgerMenuOpen(true)}
           style={{
-            width: "40px",
+            minWidth: "40px",
             height: "40px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: "5px",
+            margin: "10px",
+            marginRight: "30px",
+            flexShrink: 0,
           }}
         >
           <img
