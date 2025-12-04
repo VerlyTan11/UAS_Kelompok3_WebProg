@@ -34,18 +34,15 @@ const HeaderBar = () => {
       style={{ maxWidth: "1000px", backgroundColor: "#fff" }}
     >
       {/* Top Bar: Sapaan, Jam, dan Uang */}
-      <div className="d-flex flex-wrap justify-content-between align-items-center py-2 px-2 px-md-3 border-bottom border-top">
-        {/* FIX: px-2 untuk mobile, px-md-3 untuk desktop */}
-
-        {/* Sapaan (Kiri) */}
-        <div className="text-truncate me-1">
-          {" "}
-          {/* Tambahkan text-truncate agar tidak overflow */}
+      {/* FIX: Gunakan px-2 di semua ukuran untuk menghemat ruang horizontal */}
+      <div className="d-flex justify-content-between align-items-center py-2 px-2 border-bottom border-top">
+        {/* Sapaan (Kiri) - Batasi lebar agar money dan jam muat */}
+        <div className="text-truncate me-2 fs-6" style={{ maxWidth: "30%" }}>
           {getGreeting()} <strong>{playerName}</strong>
         </div>
 
         {/* Jam (Tengah) */}
-        <div>
+        <div className="flex-shrink-0 mx-1 fs-6">
           <strong>
             {currentTime.toLocaleTimeString([], {
               hour: "2-digit",
@@ -54,27 +51,28 @@ const HeaderBar = () => {
           </strong>
         </div>
 
-        {/* Money (Kanan) - Pastikan tidak ada margin/padding berlebih yang mendorong ke luar */}
-        <div className="d-flex align-items-center flex-shrink-0">
-          <span className="me-2">💰</span>
-          <strong>{playerStats.money.toLocaleString("id-ID")}</strong>
+        {/* Money (Kanan) - Gunakan kelas text-end di mobile */}
+        <div className="d-flex align-items-center flex-shrink-0 ms-1 fs-6">
+          <span className="me-1">💰</span>
+          <strong className="small">
+            {playerStats.money.toLocaleString("id-ID")}
+          </strong>
         </div>
       </div>
 
       {/* Stats Bar: Stats dan Tombol Burger */}
-      <div className="d-flex justify-content-between align-items-center px-2 px-md-3 py-2 border-bottom">
+      <div className="d-flex justify-content-start align-items-center px-2 py-2 border-bottom">
         {/* Stats Container */}
-        <div className="row g-1 flex-grow-1 me-2">
+        <div className="row g-0 flex-grow-1 me-2">
           {[
             { icon: "🍴", val: playerStats.meal, label: "Meal" },
             { icon: "🛏️", val: playerStats.sleep, label: "Sleep" },
             { icon: "😊", val: playerStats.happiness, label: "Happiness" },
             { icon: "🫧", val: playerStats.cleanliness, label: "Cleanliness" },
           ].map((item, i) => (
-            // col-6: 50% lebar di mobile/tablet. col-md-3: 25% lebar di desktop
-            <div key={i} className="col-12 col-md-3 my-1" title={item.label}>
-              <div className="d-flex align-items-center justify-content-start pe-2">
-                <span className="me-1">{item.icon}</span>
+            <div key={i} className="col-6 col-md-3 my-1" title={item.label}>
+              <div className="d-flex align-items-center justify-content-start px-1">
+                <span className="me-1 flex-shrink-0">{item.icon}</span>
                 <div
                   className="progress flex-grow-1"
                   style={{ height: "10px" }}
@@ -89,22 +87,16 @@ const HeaderBar = () => {
           ))}
         </div>
 
-        {/* Tombol Burger - MENGGUNAKAN IMAGE KUSTOM */}
-        {/* Posisikan tombol ini di luar 'row' tapi di dalam 'd-flex flex-wrap' agar bisa diletakkan di baris kedua jika perlu */}
         <Button
-          // FIX: Ganti kembali ke variant dark/default agar warnanya terlihat (atau hapus bg/border override)
-          className="ms-3 d-md-none cursor-target bg-white border-0"
+          className="ms-2 d-md-none cursor-target flex-shrink-0 bg-white border-0"
           onClick={() => setIsBurgerMenuOpen(true)}
           style={{
-            minWidth: "40px",
-            height: "40px",
+            minWidth: "35px",
+            height: "35px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: "5px",
-            margin: "10px",
-            marginRight: "30px",
-            flexShrink: 0,
           }}
         >
           <img

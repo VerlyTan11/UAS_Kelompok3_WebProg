@@ -145,24 +145,42 @@ const GameArena = () => {
     Mountain: { top: "55%", left: "70%" },
   };
 
-  const getAreaStyle = (areaName) => ({
-    ...positions[areaName],
-    position: "absolute",
-    width: "120px",
-    height: "120px",
-    borderRadius: "50%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    cursor: "pointer",
-    border: areaName === currentArea ? "3px solid blue" : "1px solid black",
-    backgroundColor: areaName === currentArea ? "#d9e7ff" : "#eee",
-    boxShadow: "2px 2px 5px rgba(0,0,0,0.2)",
-    fontWeight: areaName === currentArea ? "bold" : "normal",
-    transition: "opacity 0.3s",
-    // HAPUS BAGIAN MEDIA QUERY YANG ERROR DI SINI
-  });
+  const getAreaStyle = (areaName) => {
+    const isMobile = window.innerWidth < 768;
+    const size = isMobile ? "23vw" : "120px"; // Ukuran sedikit diperkecil untuk mobile
+    const fontSize = isMobile ? "0.7rem" : "1rem";
+
+    const dynamicPositions = {
+      ...positions[areaName],
+      // Penyesuaian posisi spesifik di mobile agar tidak terpotong
+      ...(isMobile && {
+        Home: { top: "5%", left: "5%" },
+        Beach: { top: "15%", left: "55%" },
+        Temple: { top: "35%", left: "25%" },
+        Lake: { top: "50%", left: "5%" },
+        Mountain: { top: "60%", left: "60%" }, // FIX: Ditarik ke kiri dan bawah agar tidak overflow
+      }),
+    };
+
+    return {
+      ...dynamicPositions, // Gunakan posisi yang sudah disesuaikan
+      position: "absolute",
+      width: size,
+      height: size,
+      borderRadius: "50%",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      cursor: "pointer",
+      border: areaName === currentArea ? "3px solid blue" : "1px solid black",
+      backgroundColor: areaName === currentArea ? "#d9e7ff" : "#eee",
+      boxShadow: "2px 2px 5px rgba(0,0,0,0.2)",
+      fontWeight: areaName === currentArea ? "bold" : "normal",
+      transition: "opacity 0.3s",
+      fontSize: fontSize,
+    };
+  };
 
   // Handle klik area
   const handleAreaClick = (areaName) => {
@@ -237,19 +255,6 @@ const GameArena = () => {
               >
                 🧍
               </div>
-            )}
-
-            {/* Indikator Area Spesifik */}
-            {gameAreas[areaName].specificArea && areaName === currentArea && (
-              <small
-                style={{
-                  position: "absolute",
-                  bottom: "-15px",
-                  fontSize: "0.8rem",
-                }}
-              >
-                (Click / Enter Specific Area)
-              </small>
             )}
           </div>
         ))}

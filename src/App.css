@@ -8,11 +8,17 @@ body,
   /* Hapus cursor: none !important; dari sini agar default cursor di elemen non-interaktif tetap ada */
   /* Tetapi saya akan biarkan sesuai request asli, jika ingin diubah, silakan hapus baris ini */
   cursor: none !important;
+  overflow-x: hidden !important;
 }
 
 /* Tambahkan kustomisasi cursor */
 .cursor-target {
   cursor: pointer !important;
+}
+
+.container-fluid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 /* Responsif: Kecilkan ukuran font pada layar yang sangat kecil */
