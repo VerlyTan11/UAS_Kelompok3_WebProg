@@ -1,34 +1,13 @@
 import React from "react";
-import { useGame } from "./context/useGame";
-import HeaderBar from "./components/HeaderBar.jsx";
-import InitialScreen from "./components/InitialScreen";
-import GameArena from "./components/GameArena";
-import { Container } from "react-bootstrap";
-import TargetCursor from "./cursor/TargetCursor";
+import { BrowserRouter as Router } from "react-router-dom";
+import RootContent from "./components/RootContent";
 import "./App.css";
-import GameOver from "./components/GameOver.jsx";
 
 const App = () => {
-  const { gameState } = useGame();
-
   return (
-    <>
-      <TargetCursor
-        spinDuration={2}
-        hideDefaultCursor={true}
-        parallaxOn={true}
-      />
-
-      <HeaderBar />
-
-      <Container fluid className="p-0" style={{ minHeight: "100vh" }}>
-        <div className="py-4">
-          {gameState === "initial" && <InitialScreen />}
-          {gameState === "playing" && <GameArena />}
-          {gameState === "IsGameOver" && <GameOver />}
-        </div>
-      </Container>
-    </>
+    <Router>
+      <RootContent />
+    </Router>
   );
 };
 
