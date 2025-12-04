@@ -1,4 +1,3 @@
-// src/components/PlayerItemsContent.jsx
 import React from "react";
 import { useGame } from "../context/useGame";
 import { ListGroup, Button } from "react-bootstrap";
@@ -8,13 +7,16 @@ const PlayerItemsContent = () => {
   const isActivityOngoing = !!activityState.name;
 
   return (
-    <ListGroup variant="flush" className="flex-grow-1 overflow-auto">
+    <ListGroup
+      variant="flush"
+      className="flex-grow-1" // FIX: Hapus overflow-auto dan maxHeight
+    >
       {playerItems
         .filter((item) => item.inInventory)
         .map((item, index) => (
           <ListGroup.Item
             key={index}
-            className="d-flex justify-content-between align-items-center py-1 px-2 border-0"
+            className="d-flex justify-content-between align-items-center py-1 px-3 border-0 ml-2"
             style={{ fontSize: "0.8rem" }}
           >
             <div className="d-flex align-items-center">
@@ -27,7 +29,7 @@ const PlayerItemsContent = () => {
               <Button
                 variant="info"
                 size="sm"
-                className="cursor-target"
+                className="cursor-target mx-3"
                 onClick={() => activateItem(item.id)}
                 disabled={isActivityOngoing} // Disable use button when activity is running
               >

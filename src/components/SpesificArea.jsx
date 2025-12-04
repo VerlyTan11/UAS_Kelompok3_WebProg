@@ -194,10 +194,10 @@ const SpecificArea = () => {
     };
   } else if (currentArea === "Home") {
     positions = {
-      Kitchen: { top: "25%", left: "20%" },
-      Bedroom: { top: "55%", left: "40%" },
-      Bathroom: { top: "25%", left: "60%" },
-      Exit: { top: "80%", left: "50%" },
+      Kitchen: { top: "10%", left: "20%" },
+      Bedroom: { top: "40%", left: "40%" },
+      Bathroom: { top: "25%", left: "70%" },
+      Exit: { top: "70%", left: "50%" },
     };
   } else {
     // FIX: Posisi untuk Temple, Lake, Mountain (Area dengan 2 lokasi)
@@ -391,7 +391,7 @@ const SpecificArea = () => {
           </div>
         ))}
 
-        {/* COLLECTIBLE ITEM DISPLAY (Dipertahankan) */}
+        {/* COLLECTIBLE ITEM DISPLAY */}
         {locations[specificLocation]?.items?.map((itemId) => {
           const item = playerItems.find((i) => i.id === itemId);
 

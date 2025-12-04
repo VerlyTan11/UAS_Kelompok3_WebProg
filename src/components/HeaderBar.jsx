@@ -33,10 +33,14 @@ const HeaderBar = () => {
       className="border border-dark mb-3 mx-auto"
       style={{ maxWidth: "1000px", backgroundColor: "#fff" }}
     >
-      {/* Top Bar: Sapaan, Jam, dan Uang dalam 1 baris di semua ukuran */}
-      <div className="d-flex flex-wrap justify-content-between align-items-center py-2 px-3 border-bottom border-top">
+      {/* Top Bar: Sapaan, Jam, dan Uang */}
+      <div className="d-flex flex-wrap justify-content-between align-items-center py-2 px-2 px-md-3 border-bottom border-top">
+        {/* FIX: px-2 untuk mobile, px-md-3 untuk desktop */}
+
         {/* Sapaan (Kiri) */}
-        <div>
+        <div className="text-truncate me-1">
+          {" "}
+          {/* Tambahkan text-truncate agar tidak overflow */}
           {getGreeting()} <strong>{playerName}</strong>
         </div>
 
@@ -50,18 +54,16 @@ const HeaderBar = () => {
           </strong>
         </div>
 
-        {/* Money (Kanan) */}
-        <div className="d-flex align-items-center">
+        {/* Money (Kanan) - Pastikan tidak ada margin/padding berlebih yang mendorong ke luar */}
+        <div className="d-flex align-items-center flex-shrink-0">
           <span className="me-2">💰</span>
           <strong>{playerStats.money.toLocaleString("id-ID")}</strong>
         </div>
       </div>
 
       {/* Stats Bar: Stats dan Tombol Burger */}
-      {/* Gunakan justify-content-start agar tombol burger tidak terdorong ke paling kanan oleh stats */}
-      <div className="d-flex flex-wrap justify-content-start align-items-center px-3 py-2 border-bottom">
-        {/* Stats - Gunakan row dan col classes untuk responsif */}
-        {/* Kurangi me-md-3 agar ada ruang untuk tombol burger di mobile jika terjadi wrap */}
+      <div className="d-flex justify-content-between align-items-center px-2 px-md-3 py-2 border-bottom">
+        {/* Stats Container */}
         <div className="row g-1 flex-grow-1 me-2">
           {[
             { icon: "🍴", val: playerStats.meal, label: "Meal" },
@@ -70,13 +72,12 @@ const HeaderBar = () => {
             { icon: "🫧", val: playerStats.cleanliness, label: "Cleanliness" },
           ].map((item, i) => (
             // col-6: 50% lebar di mobile/tablet. col-md-3: 25% lebar di desktop
-            <div key={i} className="col-6 col-md-3 my-1" title={item.label}>
+            <div key={i} className="col-12 col-md-3 my-1" title={item.label}>
               <div className="d-flex align-items-center justify-content-start pe-2">
                 <span className="me-1">{item.icon}</span>
                 <div
-                  // FIX: progress bar menggunakan flex-grow-1 untuk mengisi ruang yang tersedia
                   className="progress flex-grow-1"
-                  style={{ height: "10px" }} // Hapus maxWidth
+                  style={{ height: "10px" }}
                 >
                   <div
                     className={`progress-bar ${getBarColor(item.val)}`}

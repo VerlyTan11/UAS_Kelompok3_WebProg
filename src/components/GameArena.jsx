@@ -106,8 +106,8 @@ const GameArena = () => {
   const areaData = gameAreas[currentArea];
 
   const arenaStyle = {
-    height: "600px",
-    maxHeight: "80vh",
+    height: "650px",
+    maxHeight: "90vh",
     width: "100%",
     maxWidth: "1000px",
     margin: "0 auto",
@@ -141,8 +141,8 @@ const GameArena = () => {
     Home: { top: "5%", left: "10%" },
     Beach: { top: "15%", left: "60%" },
     Temple: { top: "35%", left: "32%" },
-    Lake: { top: "55%", left: "5%" },
-    Mountain: { top: "60%", left: "60%" },
+    Lake: { top: "50%", left: "5%" },
+    Mountain: { top: "55%", left: "70%" },
   };
 
   const getAreaStyle = (areaName) => ({
