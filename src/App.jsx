@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
+import { Container } from "react-bootstrap";
+
 import { useGame } from "./context/useGame";
 import HeaderBar from "./components/HeaderBar.jsx";
 import InitialScreen from "./components/InitialScreen";
 import GameArena from "./components/GameArena";
-import { Container } from "react-bootstrap";
-import TargetCursor from "./cursor/TargetCursor";
 import GameOver from "./components/GameOver.jsx";
+import TargetCursor from "./cursor/TargetCursor";
+import useGameAudio from "./hooks/useGameAudio";
+
 import "./App.css";
 
 const App = () => {
@@ -14,17 +17,37 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [contentComponent, setContentComponent] = useState(<InitialScreen />);
 
+  // Audio system
+  const { playClick } = useGameAudio(gameState);
+
+  useEffect(() => {
+    const handleClick = () => {
+      playClick();
+    };
+
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  }, []); // ❗ remove playClick from dependency
+
   useEffect(() => {
     setIsLoading(true);
 
-    // Simulate delay to show animation (can adjust 400-1200ms)
     const timer = setTimeout(() => {
-      if (gameState === "initial") {
-        setContentComponent(<InitialScreen />);
-      } else if (gameState === "playing") {
-        setContentComponent(<GameArena />);
-      } else if (gameState === "IsGameOver") {
-        setContentComponent(<GameOver />);
+      switch (gameState) {
+        case "initial":
+          setContentComponent(<InitialScreen />);
+          break;
+        case "playing":
+          setContentComponent(<GameArena />);
+          break;
+        case "IsGameOver":
+          setContentComponent(<GameOver />);
+          break;
+        default:
+          setContentComponent(<InitialScreen />);
       }
 
       setIsLoading(false);
@@ -35,13 +58,8 @@ const App = () => {
 
   return (
     <Router>
-      <TargetCursor
-        spinDuration={2}
-        hideDefaultCursor={true}
-        parallaxOn={true}
-      />
+      <TargetCursor spinDuration={2} hideDefaultCursor parallaxOn />
 
-      {/* Global Header */}
       <HeaderBar />
 
       <Container fluid className="p-0" style={{ minHeight: "100vh" }}>

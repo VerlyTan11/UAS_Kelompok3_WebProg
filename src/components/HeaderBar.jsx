@@ -1,9 +1,9 @@
 import React from "react";
 import { useGame } from "../context/useGame";
-import { Button } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
+import useGameAudio from "../hooks/useGameAudio";
 
 const HeaderBar = () => {
-  // Ambil setIsBurgerMenuOpen
   const {
     playerStats,
     gameState,
@@ -11,6 +11,9 @@ const HeaderBar = () => {
     currentTime,
     setIsBurgerMenuOpen,
   } = useGame();
+
+  const { musicVolume, sfxVolume, setMusicVolume, setSfxVolume } =
+    useGameAudio(gameState);
 
   if (gameState !== "playing") return null;
 
@@ -28,21 +31,21 @@ const HeaderBar = () => {
     return "bg-danger";
   };
 
+  // Dynamically change bar height based on screen width
+  const isMobile = window.innerWidth < 768;
+
   return (
     <div
-      className="border border-dark mb-3 mx-auto"
+      className="border border-dark mb-3 mx-auto w-100 overflow-hidden"
       style={{ maxWidth: "1000px", backgroundColor: "#fff" }}
     >
-      {/* Top Bar: Sapaan, Jam, dan Uang */}
-      {/* FIX: Gunakan px-2 di semua ukuran untuk menghemat ruang horizontal */}
-      <div className="d-flex justify-content-between align-items-center py-2 px-2 border-bottom border-top">
-        {/* Sapaan (Kiri) - Batasi lebar agar money dan jam muat */}
-        <div className="text-truncate me-2 fs-6" style={{ maxWidth: "30%" }}>
+      {/* ------- TOP GREETING BAR ------- */}
+      <div className="d-flex justify-content-between align-items-center py-2 px-2 border-bottom border-top flex-wrap">
+        <div className="text-truncate me-2 fs-6">
           {getGreeting()} <strong>{playerName}</strong>
         </div>
 
-        {/* Jam (Tengah) */}
-        <div className="flex-shrink-0 mx-1 fs-6">
+        <div className="mx-1 fs-6 flex-shrink-0">
           <strong>
             {currentTime.toLocaleTimeString([], {
               hour: "2-digit",
@@ -51,31 +54,27 @@ const HeaderBar = () => {
           </strong>
         </div>
 
-        {/* Money (Kanan) - Gunakan kelas text-end di mobile */}
-        <div className="d-flex align-items-center flex-shrink-0 ms-1 fs-6">
-          <span className="me-1">💰</span>
-          <strong className="small">
-            {playerStats.money.toLocaleString("id-ID")}
-          </strong>
+        <div className="d-flex align-items-center flex-shrink-0 ms-2 fs-6">
+          <span className="me-2">💰</span>
+          <strong>{playerStats.money.toLocaleString("id-ID")}</strong>
         </div>
       </div>
 
-      {/* Stats Bar: Stats dan Tombol Burger */}
-      <div className="d-flex justify-content-start align-items-center px-2 py-2 border-bottom">
-        {/* Stats Container */}
-        <div className="row g-0 flex-grow-1 me-2">
+      {/* ------- STATS + VOLUME ------- */}
+      <div className="px-2 py-2 border-bottom">
+        <div className="row g-2">
           {[
-            { icon: "🍴", val: playerStats.meal, label: "Meal" },
-            { icon: "🛏️", val: playerStats.sleep, label: "Sleep" },
-            { icon: "😊", val: playerStats.happiness, label: "Happiness" },
-            { icon: "🫧", val: playerStats.cleanliness, label: "Cleanliness" },
+            { icon: "🍴", val: playerStats.meal },
+            { icon: "🛏️", val: playerStats.sleep },
+            { icon: "😊", val: playerStats.happiness },
+            { icon: "🫧", val: playerStats.cleanliness },
           ].map((item, i) => (
-            <div key={i} className="col-6 col-md-3 my-1" title={item.label}>
-              <div className="d-flex align-items-center justify-content-start px-1">
-                <span className="me-1 flex-shrink-0">{item.icon}</span>
+            <div key={i} className="col-6 col-md-3">
+              <div className="d-flex align-items-center gap-2">
+                <span className="fs-5">{item.icon}</span>
                 <div
                   className="progress flex-grow-1"
-                  style={{ height: "10px" }}
+                  style={{ height: isMobile ? "6px" : "12px" }}
                 >
                   <div
                     className={`progress-bar ${getBarColor(item.val)}`}
@@ -87,24 +86,67 @@ const HeaderBar = () => {
           ))}
         </div>
 
-        <Button
-          className="ms-2 d-md-none cursor-target flex-shrink-0 bg-white border-0"
-          onClick={() => setIsBurgerMenuOpen(true)}
-          style={{
-            minWidth: "35px",
-            height: "35px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "5px",
-          }}
-        >
-          <img
-            src={"/burger-bar.png"}
-            alt="Menu"
-            style={{ width: "100%", height: "100%" }}
-          />
-        </Button>
+        {/* ---- MOBILE SLIDERS + BURGER ---- */}
+        <div className="d-flex d-md-none align-items-center justify-content-between gap-2 mt-3">
+          <div className="flex-grow-1 text-center">
+            <small>🎵</small>
+            <Form.Range
+              min={0}
+              max={1}
+              step={0.05}
+              value={musicVolume}
+              onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
+            />
+          </div>
+
+          <div className="flex-grow-1 text-center">
+            <small>🔔</small>
+            <Form.Range
+              min={0}
+              max={1}
+              step={0.05}
+              value={sfxVolume}
+              onChange={(e) => setSfxVolume(parseFloat(e.target.value))}
+            />
+          </div>
+
+          <Button
+            className="cursor-target bg-white border-0"
+            onClick={() => setIsBurgerMenuOpen(true)}
+            style={{ width: 38, height: 38 }}
+          >
+            <img
+              src="/burger-bar.png"
+              alt="Menu"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </Button>
+        </div>
+
+        {/* ---- DESKTOP SLIDERS ---- */}
+        <div className="d-none d-md-flex flex-column align-items-end mt-2">
+          <div className="w-50">
+            <small>🎵 Music</small>
+            <Form.Range
+              min={0}
+              max={1}
+              step={0.05}
+              value={musicVolume}
+              onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
+            />
+          </div>
+
+          <div className="w-50 mt-2">
+            <small>🔔 SFX</small>
+            <Form.Range
+              min={0}
+              max={1}
+              step={0.05}
+              value={sfxVolume}
+              onChange={(e) => setSfxVolume(parseFloat(e.target.value))}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
