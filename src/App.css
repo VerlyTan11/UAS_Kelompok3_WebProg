@@ -8,12 +8,6 @@ body,
   /* Hapus cursor: none !important; dari sini agar default cursor di elemen non-interaktif tetap ada */
   /* Tetapi saya akan biarkan sesuai request asli, jika ingin diubah, silakan hapus baris ini */
   cursor: none !important;
-  overflow-x: hidden !important;
-}
-
-/* Tambahkan kustomisasi cursor */
-.cursor-target {
-  cursor: pointer !important;
 }
 
 .container-fluid {
@@ -67,4 +61,34 @@ body,
 
 .read-the-docs {
   color: #888;
+}
+
+/* ===== PAGE TRANSITION LOADER ===== */
+.loader {
+  width: 120px;
+  height: 20px;
+  -webkit-mask: linear-gradient(90deg, #000 70%, #0000 0) left/20% 100%;
+  background:
+    linear-gradient(#000 0 0) left -25% top 0 / 20% 100% no-repeat #ddd;
+  animation: l7 1s infinite steps(6);
+  margin: auto;
+}
+
+@keyframes l7 {
+  100% {
+    background-position: right -25% top 0
+  }
+}
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999999;
+  backdrop-filter: blur(3px);
+  transition: opacity .3s ease-in-out;
+  pointer-events: none;
 }

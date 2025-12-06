@@ -186,11 +186,11 @@ const SpecificArea = () => {
   if (currentArea === "Beach") {
     // Penyesuaian posisi agar tidak terlalu mepet
     positions = {
-      "Sands Area": { top: "25%", left: "15%" },
-      Exit: { top: "50%", left: "45%" },
-      "Shop Area": { top: "75%", left: "20%" },
-      Hotel: { top: "25%", left: "75%" },
-      "Sea Area": { top: "75%", left: "70%" },
+      "Sands Area": { top: "25%", left: "10%" },
+      Exit: { top: "50%", left: "40%" },
+      "Shop Area": { top: "75%", left: "15%" },
+      Hotel: { top: "25%", left: "70%" },
+      "Sea Area": { top: "75%", left: "65%" },
     };
   } else if (currentArea === "Home") {
     positions = {
