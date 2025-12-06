@@ -30,6 +30,7 @@ export const GameProvider = ({ children }) => {
   const [worldAreas, setWorldAreas] = useState(gameSpecificAreas);
   const [modalMessage, setModalMessage] = useState(null);
   const [isBurgerMenuOpen, setIsBurgerMenuOpen] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
 
   // Time States
   const [currentTime, setCurrentTime] = useState(getInitialTime());
@@ -482,6 +483,8 @@ export const GameProvider = ({ children }) => {
         worldAreas,
         isBurgerMenuOpen,
         setIsBurgerMenuOpen,
+        selectedAvatar,
+        setSelectedAvatar,
       }}
     >
       {children}

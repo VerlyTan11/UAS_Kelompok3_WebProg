@@ -1,5 +1,3 @@
-// src/context/GameConstants.js
-
 export const initialStats = {
   meal: 50,
   sleep: 50,

@@ -101,9 +101,12 @@ const GameArena = () => {
     enterSpecificArea,
     specificLocation,
     activityState,
+    selectedAvatar,
   } = useGame();
 
   const areaData = gameAreas[currentArea];
+
+  const avatarSize = window.innerWidth < 768 ? "40px" : "60px";
 
   const arenaStyle = {
     height: "650px",
@@ -202,6 +205,8 @@ const GameArena = () => {
   const mainArenaBackground = areaData.bg || "home.jpg";
   const isActivityOngoing = !!activityState.name;
 
+  console.log("Selected Avatar:", selectedAvatar);
+
   return (
     <div
       className="d-flex"
@@ -253,7 +258,26 @@ const GameArena = () => {
                   fontSize: "30px",
                 }}
               >
-                🧍
+                {/* Player Avatar Icon */}
+                {areaName === currentArea && selectedAvatar && (
+                  <img
+                    src={selectedAvatar}
+                    alt="Player Avatar"
+                    style={{
+                      position: "absolute",
+                      width: avatarSize,
+                      height: avatarSize,
+                      top: window.innerWidth < 768 ? "20px" : "20px",
+                      right: window.innerWidth < 768 ? "5px" : "-10px",
+                      borderRadius: "50%",
+                      border: "3px solid #000",
+                      background: "#fff",
+                      objectFit: "cover",
+                      boxShadow: "0px 0px 6px rgba(0,0,0,0.4)",
+                      zIndex: 999, // 🔥 Pastikan tidak tertutup elemen lain
+                    }}
+                  />
+                )}
               </div>
             )}
           </div>
