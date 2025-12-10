@@ -35,15 +35,26 @@ const HeaderBar = () => {
 
   return (
     <div
-      className="border border-dark mb-3 mx-auto w-100 overflow-hidden"
-      style={{ maxWidth: "1000px", backgroundColor: "#fff" }}
+      // FIX: Hapus position: fixed dan tambahkan mt-3 untuk jarak dari atas
+      className="mx-auto w-100 overflow-hidden shadow-lg p-3 mt-3 mb-3"
+      style={{
+        // HAPUS: position: "fixed", top, left, transform, zIndex
+        maxWidth: "1000px",
+        backgroundColor: "#fff",
+        borderRadius: "15px", // Desain modern tetap
+        border: "none",
+        // Menggunakan padding bawaan p-3 (15px) dan menyesuaikan width
+        width: isMobile ? "95%" : "auto",
+      }}
     >
-      {/* ---------- TOP BAR ---------- */}
-      <div className="d-flex justify-content-between align-items-center py-2 px-2 border-bottom flex-wrap">
-        <div className="text-truncate me-2 fs-6">
+      {/* ---------- TOP BAR (Greeting, Time, Money) ---------- */}
+      <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap border-bottom pb-2">
+        {/* Greeting & Name */}
+        <div className="text-truncate me-2 fs-6" style={{ maxWidth: "35%" }}>
           {getGreeting()} <strong>{playerName}</strong>
         </div>
 
+        {/* Time */}
         <div className="mx-1 fs-6 flex-shrink-0">
           <strong>
             {currentTime.toLocaleTimeString([], {
@@ -53,6 +64,7 @@ const HeaderBar = () => {
           </strong>
         </div>
 
+        {/* Money */}
         <div className="d-flex align-items-center flex-shrink-0 ms-2 fs-6">
           <span className="me-2">💰</span>
           <strong>{playerStats.money.toLocaleString("id-ID")}</strong>
@@ -60,9 +72,9 @@ const HeaderBar = () => {
       </div>
 
       {/* ---------- STATS + SLIDERS ---------- */}
-      <div className="px-2 py-2 border-bottom">
-        <div className="row g-2 align-items-center">
-          {/* Stats Bar (Col-9 on Desktop, Full on Mobile) */}
+      <div className="d-flex flex-wrap justify-content-start align-items-center">
+        <div className="row g-2 align-items-center w-100">
+          {/* Stats Bar (Col-9 on Desktop, Full Row on Mobile) */}
           <div className="col-12 col-md-9">
             <div className="row g-2">
               {[
@@ -71,9 +83,10 @@ const HeaderBar = () => {
                 { icon: "😊", val: playerStats.happiness },
                 { icon: "🫧", val: playerStats.cleanliness },
               ].map((item, i) => (
+                // Col-6 di mobile (2 baris), Col-md-3 di desktop (1 baris)
                 <div key={i} className="col-6 col-md-3">
                   <div className="d-flex align-items-center gap-2">
-                    <span className="fs-5">{item.icon}</span>
+                    <span className="fs-5 flex-shrink-0">{item.icon}</span>
                     <div
                       className="progress flex-grow-1"
                       style={{ height: isMobile ? "6px" : "12px" }}
@@ -89,10 +102,10 @@ const HeaderBar = () => {
             </div>
           </div>
 
-          {/* ---- Desktop Sliders (same row with stats) ---- */}
-          <div className="d-none d-md-flex col-md-3 flex-column">
-            <div>
-              <small>🎵 Music</small>
+          {/* ---- Desktop Sliders (Col-3) ---- */}
+          <div className="d-none d-md-flex col-md-3 flex-column ps-4 border-start">
+            <div className="mb-1">
+              <small className="d-block">🎵 Music</small>
               <Form.Range
                 min={0}
                 max={1}
@@ -101,8 +114,8 @@ const HeaderBar = () => {
                 onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
               />
             </div>
-            <div className="mt-2">
-              <small>🔔 SFX</small>
+            <div>
+              <small className="d-block">🔔 SFX</small>
               <Form.Range
                 min={0}
                 max={1}
@@ -114,10 +127,11 @@ const HeaderBar = () => {
           </div>
         </div>
 
-        {/* ---- Mobile Sliders + Burger (below stats) ---- */}
-        <div className="d-flex d-md-none align-items-center justify-content-between gap-3 mt-3">
+        {/* ---- Mobile Sliders + Burger (Baris terpisah di bawah) ---- */}
+        <div className="d-flex d-md-none align-items-center justify-content-between gap-3 mt-3 w-100">
+          {/* Mobile Music Slider */}
           <div className="flex-grow-1 text-center">
-            <small>🎵</small>
+            <small className="d-block">🎵 Music</small>
             <Form.Range
               min={0}
               max={1}
@@ -127,8 +141,9 @@ const HeaderBar = () => {
             />
           </div>
 
+          {/* Mobile SFX Slider */}
           <div className="flex-grow-1 text-center">
-            <small>🔔</small>
+            <small className="d-block">🔔 SFX</small>
             <Form.Range
               min={0}
               max={1}
@@ -138,10 +153,12 @@ const HeaderBar = () => {
             />
           </div>
 
+          {/* Burger Button */}
           <Button
-            className="cursor-target bg-white border-0"
+            className="cursor-target flex-shrink-0"
+            variant="light"
             onClick={() => setIsBurgerMenuOpen(true)}
-            style={{ width: 38, height: 38 }}
+            style={{ width: 38, height: 38, borderRadius: "50%" }}
           >
             <img
               src="/burger-bar.png"

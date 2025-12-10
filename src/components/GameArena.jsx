@@ -14,80 +14,113 @@ const MovementControlsGlobal = () => {
     isGameOver,
     activityState,
   } = useGame();
+
   const isActivityOngoing = !!activityState.name;
   const isDisabled = isActivityOngoing;
 
   if (isGameOver) return null;
 
+  // Gaya tombol panah yang baru
+  const arrowButtonStyle = {
+    background: "transparent",
+    border: "none",
+    padding: "0",
+    width: "48px",
+    height: "48px",
+    cursor: "pointer",
+    transition: "transform 0.1s ease",
+  };
+
+  // Gambar segitiga hitam
+  const arrowIconStyle = (rotation) => ({
+    width: "100%",
+    height: "100%",
+    transform: `rotate(${rotation}deg)`,
+    filter: isDisabled ? "grayscale(100%) opacity(0.4)" : "none",
+  });
+
   return (
     <div
-      // HANYA TAMPIL di layar BESAR (md ke atas)
-      className="d-none d-md-flex justify-content-center align-items-center bg-light shadow-lg border border-dark rounded-3 p-2"
+      className="d-none d-md-flex justify-content-center align-items-center p-2"
       style={{
         position: "absolute",
         bottom: "150px",
-        right: "25px",
+        right: "15px",
         zIndex: 100,
+        background: "transparent",
       }}
     >
       <div className="d-flex flex-column align-items-center">
         {/* UP */}
-        <Button
-          variant="outline-dark"
-          size="sm"
-          className="mb-1 cursor-target"
-          style={{ borderRadius: "50%", width: "40px", height: "40px" }}
+        <button
+          style={arrowButtonStyle}
           onClick={() => moveAreaByDirection("up")}
           disabled={isDisabled}
+          className="cursor-target mb-1"
         >
-          <i className="bi bi-caret-up-fill"></i>
-        </Button>
-        <div className="d-flex">
+          <img
+            src="/right-arrow.png"
+            alt="up"
+            style={arrowIconStyle(-90)} // Rotate 90° ke kiri
+          />
+        </button>
+
+        <div className="d-flex align-items-center justify-content-center">
           {/* LEFT */}
-          <Button
-            variant="outline-dark"
-            size="sm"
-            className="me-1 cursor-target"
-            style={{ borderRadius: "50%", width: "40px", height: "40px" }}
+          <button
+            style={{ ...arrowButtonStyle, marginRight: "6px" }}
             onClick={() => moveAreaByDirection("left")}
             disabled={isDisabled}
+            className="cursor-target"
           >
-            <i className="bi bi-caret-left-fill"></i>
-          </Button>
+            <img
+              src="/right-arrow.png"
+              alt="left"
+              style={arrowIconStyle(180)} // Rotate 180°
+            />
+          </button>
+
           {/* HINT */}
           <span
+            className="bg-light text-dark shadow-sm rounded d-flex align-items-center justify-content-center"
             style={{
-              width: "40px",
-              textAlign: "center",
+              width: "48px",
+              height: "48px",
               fontSize: "0.7rem",
-              marginTop: "10px",
+              border: "1px solid #ccc",
             }}
           >
             {specificLocation ? specificLocation.split(" ")[0] : currentArea}
           </span>
+
           {/* RIGHT */}
-          <Button
-            variant="outline-dark"
-            size="sm"
-            className="ms-1 cursor-target"
-            style={{ borderRadius: "50%", width: "40px", height: "40px" }}
+          <button
+            style={{ ...arrowButtonStyle, marginLeft: "6px" }}
             onClick={() => moveAreaByDirection("right")}
             disabled={isDisabled}
           >
-            <i className="bi bi-caret-right-fill"></i>
-          </Button>
+            <img
+              src="/right-arrow.png"
+              alt="right"
+              style={arrowIconStyle(0)} // Normal (ke kanan)
+              className="cursor-target"
+            />
+          </button>
         </div>
+
         {/* DOWN */}
-        <Button
-          variant="outline-dark"
-          size="sm"
-          className="mt-1 cursor-target"
-          style={{ borderRadius: "50%", width: "40px", height: "40px" }}
+        <button
+          style={{ ...arrowButtonStyle, marginTop: "6px" }}
           onClick={() => moveAreaByDirection("down")}
           disabled={isDisabled}
+          className="cursor-target"
         >
-          <i className="bi bi-caret-down-fill"></i>
-        </Button>
+          <img
+            src="/right-arrow.png"
+            alt="down"
+            style={arrowIconStyle(90)} // Rotate 90° ke kanan
+          />
+        </button>
       </div>
     </div>
   );
@@ -112,7 +145,7 @@ const GameArena = () => {
     height: "650px",
     maxHeight: "90vh",
     width: "100%",
-    maxWidth: "1000px",
+    maxWidth: "1200px",
     margin: "0 auto",
     backgroundSize: "cover",
     backgroundPosition: "center",
@@ -259,7 +292,7 @@ const GameArena = () => {
                 }}
               >
                 {/* Player Avatar Icon */}
-                {areaName === currentArea && selectedAvatar && (
+                {selectedAvatar && (
                   <img
                     src={selectedAvatar}
                     alt="Player Avatar"

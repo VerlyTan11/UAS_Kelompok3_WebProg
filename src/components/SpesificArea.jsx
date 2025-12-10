@@ -398,7 +398,7 @@ const SpecificArea = () => {
           return (
             <Card
               key={itemId}
-              className="position-absolute p-2 cursor-target shadow"
+              className="position-absolute p-2 shadow"
               style={{
                 bottom: "20px",
                 left: "20px",
@@ -411,7 +411,11 @@ const SpecificArea = () => {
                 {item.icon}
               </div>
               <p className="text-center small">{item.name}</p>
-              <Button variant="success" size="sm" className="w-100">
+              <Button
+                variant="success"
+                size="sm"
+                className="w-100 cursor-target"
+              >
                 Collect
               </Button>
             </Card>

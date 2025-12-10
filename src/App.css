@@ -1,13 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Kirang+Haerang&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Modak&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Atma:wght@300;400;500;600;700&display=swap');
 
 body,
 * {
-  font-family: "Kirang Haerang", system-ui !important;
+  font-family: "Atma", system-ui;
   font-weight: 400;
   font-style: normal;
   /* Hapus cursor: none !important; dari sini agar default cursor di elemen non-interaktif tetap ada */
   /* Tetapi saya akan biarkan sesuai request asli, jika ingin diubah, silakan hapus baris ini */
   cursor: none !important;
+}
+
+h3 {
+  font-family: "Modak", system-ui;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .container-fluid {

@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { Container } from "react-bootstrap";
 
 import { useGame } from "./context/useGame";
@@ -12,65 +18,94 @@ import useGameAudio from "./hooks/useGameAudio";
 
 import "./App.css";
 
-const App = () => {
-  const { gameState } = useGame();
+const AppContent = () => {
+  const { gameState, isGameOver } = useGame();
   const [isLoading, setIsLoading] = useState(false);
-  const [contentComponent, setContentComponent] = useState(<InitialScreen />);
+
+  // Hooks Router
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // State yang mencerminkan path tujuan yang diinginkan
+  const targetPath = isGameOver
+    ? "/gameover"
+    : gameState === "playing"
+    ? "/game"
+    : "/";
+
+  const needsNavigation = targetPath !== location.pathname;
 
   // Audio system
   const { playClick } = useGameAudio(gameState);
 
+  // EFFECT 1: SFX Click Global
   useEffect(() => {
     const handleClick = () => {
-      playClick();
+      if (gameState !== "initial") {
+        playClick();
+      }
     };
-
     document.addEventListener("click", handleClick);
-
     return () => {
       document.removeEventListener("click", handleClick);
     };
-  }, []); // ❗ remove playClick from dependency
+  }, [gameState, playClick]);
 
+  // EFFECT 2: Transisi State ke Route Path dengan Loading
   useEffect(() => {
+    if (!needsNavigation) return;
+
+    // Mencegah loading di render pertama
+    if (location.pathname === "/") {
+      navigate(targetPath, { replace: true });
+      return;
+    }
+
+    // Aktifkan Loading
     setIsLoading(true);
 
     const timer = setTimeout(() => {
-      switch (gameState) {
-        case "initial":
-          setContentComponent(<InitialScreen />);
-          break;
-        case "playing":
-          setContentComponent(<GameArena />);
-          break;
-        case "IsGameOver":
-          setContentComponent(<GameOver />);
-          break;
-        default:
-          setContentComponent(<InitialScreen />);
-      }
-
+      navigate(targetPath);
       setIsLoading(false);
     }, 700);
 
-    return () => clearTimeout(timer);
-  }, [gameState]);
+    return () => {
+      clearTimeout(timer);
+      setIsLoading(false);
+    };
+  }, [gameState, isGameOver, navigate, targetPath, needsNavigation]);
 
   return (
-    <Router>
+    <>
       <TargetCursor spinDuration={2} hideDefaultCursor parallaxOn />
 
       <HeaderBar />
 
       <Container fluid className="p-0" style={{ minHeight: "100vh" }}>
-        <div className="py-4">{contentComponent}</div>
+        <div className="py-4">
+          <Routes>
+            <Route path="/" element={<InitialScreen />} />
+            <Route path="/game" element={<GameArena />} />
+            <Route path="/gameover" element={<GameOver />} />
+            <Route path="*" element={<InitialScreen />} />
+          </Routes>
+        </div>
       </Container>
 
+      {/* Loading Overlay */}
       {isLoading && (
         <div className="loading-overlay">
           <div className="loader"></div>
         </div>
       )}
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 };
