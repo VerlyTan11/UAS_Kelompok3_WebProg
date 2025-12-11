@@ -1,12 +1,20 @@
 // src/components/DeveloperBadge.jsx
 
 import React, { useState } from "react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { Users, Code, Info } from "lucide-react";
 
 const developers = [
-  { name: "Beverly Vladislav Tan", role: "Fullstack Developer", avatar: "/avatar1.png" },
-  { name: "Saint Christopher Shyandon", role: "Backend Developer", avatar: "/avatar2.png" },
+  {
+    name: "Beverly Vladislav Tan",
+    role: "Fullstack Developer",
+    avatar: "/avatar1.png",
+  },
+  {
+    name: "Saint Christopher Shyandon",
+    role: "Backend Developer",
+    avatar: "/avatar2.png",
+  },
   { name: "Dylan", role: "Frontend Developer", avatar: "/avatar3.png" },
 ];
 

@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "bootstrap": "^5.3.8",
+    "framer-motion": "^12.23.26",
     "gsap": "^3.13.0",
+    "lucide-react": "^0.560.0",
     "react": "^19.2.0",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.0",
