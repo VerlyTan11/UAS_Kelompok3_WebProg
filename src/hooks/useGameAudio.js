@@ -9,10 +9,12 @@ export default function useGameAudio(gameState) {
 
   // load audio once
   useEffect(() => {
-    clickSoundRef.current = new Audio("../../public/click.mp3");
+    // FIX 1: Ganti path relatif "../../public/click.mp3" menjadi "/click.mp3"
+    clickSoundRef.current = new Audio("/click.mp3");
     clickSoundRef.current.volume = sfxVolume;
 
-    backgroundMusicRef.current = new Audio("../../public/backsound.mp3");
+    // FIX 2: Ganti path relatif "../../public/backsound.mp3" menjadi "/backsound.mp3"
+    backgroundMusicRef.current = new Audio("/backsound.mp3");
     backgroundMusicRef.current.loop = true;
     backgroundMusicRef.current.volume = musicVolume;
   }, []);
@@ -33,8 +35,14 @@ export default function useGameAudio(gameState) {
 
   // autoplay when game starts
   useEffect(() => {
+    // Tambahkan cek apakah backgroundMusicRef.current sudah diinisialisasi
     if (gameState === "playing" && backgroundMusicRef.current) {
+      // FIX: Panggil load() sebelum play() di Chrome/Firefox untuk memastikan file dimuat ulang
+      backgroundMusicRef.current.load();
       backgroundMusicRef.current.play().catch(() => {});
+    } else if (gameState !== "playing" && backgroundMusicRef.current) {
+      // Hentikan musik saat berpindah dari halaman game
+      backgroundMusicRef.current.pause();
     }
   }, [gameState]);
 
