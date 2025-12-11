@@ -15,6 +15,7 @@ import GameArena from "./components/GameArena";
 import GameOver from "./components/GameOver.jsx";
 import TargetCursor from "./cursor/TargetCursor";
 import useGameAudio from "./hooks/useGameAudio";
+import DeveloperBadge from "./components/DeveloperBadge.jsx";
 
 import "./App.css";
 
@@ -61,8 +62,10 @@ const AppContent = () => {
       return;
     }
 
-    // Aktifkan Loading
-    setIsLoading(true);
+    // Aktifkan Loading dalam setTimeout untuk menghindari synchronous state update
+    const loadingTimer = setTimeout(() => {
+      setIsLoading(true);
+    }, 0);
 
     const timer = setTimeout(() => {
       navigate(targetPath);
@@ -70,6 +73,7 @@ const AppContent = () => {
     }, 700);
 
     return () => {
+      clearTimeout(loadingTimer);
       clearTimeout(timer);
       setIsLoading(false);
     };
@@ -91,6 +95,8 @@ const AppContent = () => {
           </Routes>
         </div>
       </Container>
+
+      <DeveloperBadge />
 
       {/* Loading Overlay */}
       {isLoading && (
