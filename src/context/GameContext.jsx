@@ -378,48 +378,50 @@ export const GameProvider = ({ children }) => {
     if (gameState !== "playing" || isGameOver) return;
 
     const tickInterval = setInterval(() => {
-      setActivityState((prevActivity) => {
-        if (prevActivity.name && prevActivity.mode === "normal") {
-          const nextTick = prevActivity.currentTick + 1;
-          const newProgress = Math.min(
-            100,
-            (nextTick / prevActivity.totalTicks) * 100
-          );
+// ----- GANTI BAGIAN setActivityState DI DALAM useEffect -----
+// (taruh ini menggantikan kode lama yang meng-handle nextTick dan completion)
+setActivityState((prevActivity) => {
+  if (prevActivity.name && prevActivity.mode === "normal") {
+    const nextTick = prevActivity.currentTick + 1;
+    const newProgress = Math.min(
+      100,
+      (nextTick / prevActivity.totalTicks) * 100
+    );
 
-          const definition = activityDefinitions[prevActivity.name];
-          const partialStatChanges = {};
-          for (const stat in definition.statChanges) {
-            if (stat === "money") continue;
+    const definition = activityDefinitions[prevActivity.name] || { statChanges: {} };
 
-            partialStatChanges[stat] =
-              definition.statChanges[stat] / prevActivity.totalTicks;
-          }
-          updateStats(partialStatChanges);
+    // Hitung partial stat changes per tick (kecuali money)
+    const partialStatChanges = {};
+    for (const stat in definition.statChanges) {
+      if (stat === "money") continue;
+      partialStatChanges[stat] = definition.statChanges[stat] / prevActivity.totalTicks;
+    }
+    updateStats(partialStatChanges);
 
-          if (nextTick >= prevActivity.totalTicks) {
-            setActivitiesPerformed((prev) => prev + 1);
+    // Jika aktivitas selesai pada tick ini -> panggil completeActivity
+    if (nextTick >= prevActivity.totalTicks) {
+      // NOTE: jangan panggil setActivitiesPerformed di sini — biarkan completeActivity yang melakukannya
+      // Panggil completeActivity di sini supaya itemAcquired / purchase diproses
+      // (completeActivity juga akan reset activityState)
+      // Namun completeActivity meng-set activityState sendiri, jadi kita tidak perlu mengembalikan reset lagi.
+      // Memanggil completeActivity dari sini adalah side-effect — aman dilakukan.
+      completeActivity(prevActivity.name, definition.statChanges);
 
-            return {
-              name: null,
-              progress: 0,
-              totalTicks: 0,
-              currentTick: 0,
-              statChanges: {},
-              message: null,
-              animation: null,
-              mode: "normal",
-              type: "activity",
-            };
-          } else {
-            return {
-              ...prevActivity,
-              currentTick: nextTick,
-              progress: newProgress,
-            };
-          }
-        }
-        return prevActivity;
-      });
+      // kembalikan prevActivity apa adanya karena completeActivity akan mereset activityState
+      // (mengembalikan prevActivity agar React tidak mengganti state di tengah-tengah)
+      return prevActivity;
+    }
+
+    // jika belum selesai, update tick & progress
+    return {
+      ...prevActivity,
+      currentTick: nextTick,
+      progress: newProgress,
+    };
+  }
+  return prevActivity;
+});
+
 
       // 2. Stat Decay
       setPlayerStats((prev) => {
