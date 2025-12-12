@@ -211,7 +211,7 @@ export const activityDefinitions = {
     duration: 5,
     statChanges: { meal: 20, happiness: 5, cleanliness: -5 },
     message: "Fishing in the quiet lake...",
-    requiredItems: [],
+    requiredItems: ["fishing_rod"],
     animation: "🎣",
     type: "activity",
   },
