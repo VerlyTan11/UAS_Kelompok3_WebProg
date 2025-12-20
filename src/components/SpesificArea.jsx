@@ -187,25 +187,25 @@ const SpecificArea = () => {
     positions = {
       Beach: { top: "25%", left: "35%" },
       Jungle: { top: "25%", left: "75%" },
-      Exit: { top: "70%", left: "45%" },
+      Exit: { top: "60%", left: "45%" },
     };
   } else if (currentArea === "Castle") {
     positions = {
       Town: { top: "25%", left: "20%" },
       Supermarket: { top: "25%", left: "45%" },
       ThroneRoom: { top: "25%", left: "80%" },
-      Exit: { top: "70%", left: "45%" },
+      Exit: { top: "60%", left: "45%" },
     };
   } else if (currentArea === "Cave") {
     positions = {
       Tunnel: { top: "30%", left: "45%" },
-      Exit: { top: "70%", left: "45%" },
+      Exit: { top: "60%", left: "45%" },
     };
   } else if (currentArea === "Mercusuar") {
     positions = {
       Refuel: { top: "30%", left: "25%" },
       Top: { top: "30%", left: "70%" },
-      Exit: { top: "70%", left: "45%" },
+      Exit: { top: "60%", left: "45%" },
     };
   } else {
     // Fallback otomatis (aman jika nanti nambah area baru)
@@ -216,7 +216,7 @@ const SpecificArea = () => {
     if (activityLocationName) {
       positions[activityLocationName] = { top: "30%", left: "45%" };
     }
-    positions["Exit"] = { top: "70%", left: "45%" };
+    positions["Exit"] = { top: "60%", left: "45%" };
   }
 
   const getAreaStyle = (locationName) => ({
@@ -224,7 +224,7 @@ const SpecificArea = () => {
     position: "absolute",
     width: "40px",
     height: "40px",
-    backgroundImage: "url(../../../../public/pin.png)",
+    backgroundImage: "url(pin.png)",
     backgroundSize: "contain",
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
@@ -303,28 +303,24 @@ const SpecificArea = () => {
     if (!specificLocation) return "";
 
     if (currentArea === "Island") {
-      if (specificLocation === "Beach")
-        return "/assets/backgrounds/island-beach.jpg";
-      if (specificLocation === "Jungle")
-        return "/assets/backgrounds/island-jungle.jpg";
+      if (specificLocation === "Beach") return "beach.jpg";
+      if (specificLocation === "Jungle") return "mount.jpg";
     }
 
     if (currentArea === "Castle") {
-      if (specificLocation === "Town")
-        return "/assets/backgrounds/castle-town.jpg";
-      if (specificLocation === "ThroneRoom")
-        return "/assets/backgrounds/castle-throne.jpg";
+      if (specificLocation === "Town") return "town.jpg";
+      if (specificLocation === "ThroneRoom") return "throne-room.jpg";
     }
 
     if (currentArea === "Cave") {
-      return "/assets/backgrounds/cave.jpg";
+      return "inside-cave.jpg";
     }
 
     if (currentArea === "Mercusuar") {
-      return "/assets/backgrounds/lighthouse.jpg";
+      return "inside-mercusuar.jpg";
     }
 
-    return "";
+    return "map.jpg";
   };
 
   return (
@@ -447,7 +443,7 @@ const SpecificArea = () => {
               className="position-absolute p-2 shadow"
               style={{
                 bottom: "20px",
-                left: "20px",
+                left: "150px",
                 width: "150px",
                 zIndex: 11,
               }}

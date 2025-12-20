@@ -113,7 +113,7 @@ const GameArena = () => {
     maxHeight: "90vh",
     width: "100%",
     maxWidth: "1200px",
-    margin: "0 auto",
+    margin: isMobile ? "0 auto" : "0 auto 0 150px",
     backgroundImage: `url(/${areaData.bg})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
@@ -140,10 +140,22 @@ const GameArena = () => {
   /* POSISI IKON AREA */
   /* ===================== */
   const positions = {
-    Castle: { top: "20%", left: "10%" },
-    Cave: { top: "55%", left: "5%" },
-    Mercusuar: { top: "15%", left: "55%" },
-    Island: { top: "65%", left: "45%" },
+    Castle: {
+      top: "20%",
+      left: isMobile ? "30%" : "10%",
+    },
+    Cave: {
+      top: "55%",
+      left: isMobile ? "20%" : "5%",
+    },
+    Mercusuar: {
+      top: "15%",
+      left: isMobile ? "65%" : "55%",
+    },
+    Island: {
+      top: "65%",
+      left: isMobile ? "75%" : "45%",
+    },
   };
 
   /* ===================== */
