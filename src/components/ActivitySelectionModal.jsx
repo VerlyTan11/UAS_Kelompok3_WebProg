@@ -72,7 +72,7 @@ const ActivitySelectionModal = ({
                 <Button
                   variant={isAvailable ? "outline-dark" : "outline-secondary"}
                   className="cursor-target flex-fill me-sm-1 mb-1 mb-sm-0"
-                  onClick={() => handleActivityStart(activityName, "normal")}
+                  onClick={() => handleActivityStart(activityKey, "normal")}
                   disabled={!isAvailable}
                 >
                   Normal Mode
@@ -84,8 +84,8 @@ const ActivitySelectionModal = ({
                       : "outline-secondary"
                   }
                   className="cursor-target flex-fill"
-                  onClick={() =>
-                    handleActivityStart(activityName, "fastforward")
+                  onClick={
+                    () => handleActivityStart(activityKey, "fastforward")
                   }
                   disabled={!isFastForwardPossible}
                   title={

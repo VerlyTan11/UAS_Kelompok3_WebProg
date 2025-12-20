@@ -183,33 +183,40 @@ const SpecificArea = () => {
 
   let positions = {};
 
-  if (currentArea === "Beach") {
-    // Penyesuaian posisi agar tidak terlalu mepet
+  if (currentArea === "Island") {
     positions = {
-      "Sands Area": { top: "25%", left: "10%" },
-      Exit: { top: "50%", left: "40%" },
-      "Shop Area": { top: "75%", left: "15%" },
-      Hotel: { top: "25%", left: "70%" },
-      "Sea Area": { top: "75%", left: "65%" },
+      Beach: { top: "25%", left: "15%" },
+      Jungle: { top: "25%", left: "75%" },
+      Exit: { top: "70%", left: "45%" },
     };
-  } else if (currentArea === "Home") {
+  } else if (currentArea === "Castle") {
     positions = {
-      Kitchen: { top: "10%", left: "20%" },
-      Bedroom: { top: "40%", left: "40%" },
-      Bathroom: { top: "25%", left: "70%" },
-      Exit: { top: "70%", left: "50%" },
+      Town: { top: "25%", left: "10%" },
+      Supermarket: { top: "25%", left: "45%" },
+      ThroneRoom: { top: "25%", left: "80%" },
+      Exit: { top: "70%", left: "45%" },
+    };
+  } else if (currentArea === "Cave") {
+    positions = {
+      Tunnel: { top: "30%", left: "45%" },
+      Exit: { top: "70%", left: "45%" },
+    };
+  } else if (currentArea === "Mercusuar") {
+    positions = {
+      Refuel: { top: "30%", left: "20%" },
+      Top: { top: "30%", left: "70%" },
+      Exit: { top: "70%", left: "45%" },
     };
   } else {
-    // FIX: Posisi untuk Temple, Lake, Mountain (Area dengan 2 lokasi)
+    // Fallback otomatis (aman jika nanti nambah area baru)
     const activityLocationName = Object.keys(locations).find(
       (loc) => loc !== "Exit"
     );
 
     if (activityLocationName) {
-      // Activity di tengah atas
       positions[activityLocationName] = { top: "30%", left: "45%" };
     }
-    positions["Exit"] = { top: "70%", left: "45%" }; // Exit di tengah bawah
+    positions["Exit"] = { top: "70%", left: "45%" };
   }
 
   const getAreaStyle = (locationName) => ({
@@ -268,35 +275,29 @@ const SpecificArea = () => {
     setConfirmFF(null); // Tutup modal konfirmasi FF
   };
 
-  const handleActivityStart = (activityName, mode) => {
-    const activityKey = `${specificLocation} - ${activityName}`;
-    const definition = activityDefinitions[activityKey];
+  const handleActivityStart = (fullActivityKey, mode) => {
+    // fullActivityKey is now correctly "Tunnel - EXPLORE CAVE"
+    const definition = activityDefinitions[fullActivityKey];
     const baseMoneyCost = definition?.statChanges?.money || 0;
 
-    setShowActivityModal(false); // Tutup Modal Pemilihan Aktivitas
+    setShowActivityModal(false);
 
     if (mode === "fastforward") {
       const totalCost = Math.abs(baseMoneyCost) + FAST_FORWARD_FEE;
       if (playerStats.money < totalCost) {
-        alert(
-          `Uang tidak cukup! Total biaya Fast Forward adalah 💰${totalCost.toLocaleString(
-            "id-ID"
-          )}.`
-        );
+        alert(`Uang tidak cukup!`);
         return;
       }
 
-      // Tampilkan modal konfirmasi kustom
       setConfirmFF({
-        activityKey,
-        activityName: `${specificLocation} - ${activityName}`,
+        activityKey: fullActivityKey,
+        activityName: fullActivityKey,
         costDetails: { baseMoneyCost, totalPayment: totalCost },
       });
-      return; // Stop di sini, tunggu konfirmasi modal
+      return;
     }
 
-    // Lanjutkan dengan memulai aktivitas jika mode normal
-    startActivity(activityKey, mode);
+    startActivity(fullActivityKey, mode);
   };
 
   // Hanya tampilkan lokasi yang sudah didefinisikan posisinya

@@ -3,10 +3,10 @@ import { Card, Button, Form, Image, Modal } from "react-bootstrap";
 import { useGame } from "../context/useGame";
 
 const avatarList = [
-  "/avatar1.png",
-  "/avatar2.png",
-  "/avatar3.png",
-  "/avatar4.png",
+  "/pirate-ship.png",
+  "/pirate-ship (2).png",
+  "/pirate-ship (3).png",
+  "/ship.png",
 ];
 
 const InitialScreen = () => {

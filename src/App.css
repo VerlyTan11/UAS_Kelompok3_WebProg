@@ -22,6 +22,16 @@ h3 {
   padding-right: 0 !important;
 }
 
+:root {
+  --sidebar-width: 260px;
+}
+
+@media (min-width: 768px) {
+  .game-arena {
+    margin-left: var(--sidebar-width);
+  }
+}
+
 /* Responsif: Kecilkan ukuran font pada layar yang sangat kecil */
 @media (max-width: 576px) {
 

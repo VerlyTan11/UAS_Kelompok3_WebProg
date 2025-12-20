@@ -1,14 +1,194 @@
 import React from "react";
-import { useGame } from "../context/useGame";
 import { Button, Form } from "react-bootstrap";
+import { useGame } from "../context/useGame";
 import useGameAudio from "../hooks/useGameAudio";
 
+/* ======================
+   UTIL
+   ====================== */
+const formatTime = (date) =>
+  date.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+/* ======================
+   MOBILE HEADER
+   ====================== */
+const MobileHeader = ({
+  playerName,
+  playerStats,
+  currentTime,
+  activityMode,
+  getGreeting,
+  getBarColor,
+  musicVolume,
+  sfxVolume,
+  setMusicVolume,
+  setSfxVolume,
+  setIsBurgerMenuOpen,
+}) => (
+  <div className="d-md-none mx-auto w-100 shadow p-3 mt-3 mb-3 rounded bg-white">
+    {/* TOP INFO */}
+    <div className="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+      <div>
+        {getGreeting()} <strong>{playerName}</strong>
+      </div>
+
+      <div className="text-center">
+        <strong>{formatTime(currentTime)}</strong>
+        {activityMode === "fastforward" && (
+          <div className="text-warning small">⏩ Fast Forward</div>
+        )}
+      </div>
+
+      <div>
+        💎 <strong>{playerStats.money.toLocaleString("id-ID")}</strong>
+      </div>
+    </div>
+
+    {/* STATS */}
+    <div className="row g-2">
+      {[
+        { icon: "🍴", val: playerStats.meal },
+        { icon: "🛏️", val: playerStats.sleep },
+        { icon: "😊", val: playerStats.happiness },
+        { icon: "🫧", val: playerStats.cleanliness },
+        { icon: "⛽", val: playerStats.fuel },
+      ].map((item, i) => (
+        <div key={i} className="col-6">
+          <div className="d-flex align-items-center gap-2">
+            <span>{item.icon}</span>
+            <div className="progress flex-grow-1" style={{ height: 6 }}>
+              <div
+                className={`progress-bar ${getBarColor(item.val)}`}
+                style={{ width: `${item.val}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* AUDIO + BURGER */}
+    <div className="d-flex gap-2 mt-3">
+      <div className="flex-grow-1">
+        <small>🎵 Music</small>
+        <Form.Range
+          min={0}
+          max={1}
+          step={0.05}
+          value={musicVolume}
+          onChange={(e) => setMusicVolume(+e.target.value)}
+        />
+      </div>
+
+      <div className="flex-grow-1">
+        <small>🔔 SFX</small>
+        <Form.Range
+          min={0}
+          max={1}
+          step={0.05}
+          value={sfxVolume}
+          onChange={(e) => setSfxVolume(+e.target.value)}
+        />
+      </div>
+
+      <Button
+        variant="light"
+        onClick={() => setIsBurgerMenuOpen(true)}
+        style={{ width: 40, height: 40, borderRadius: "50%" }}
+      >
+        <img src="/burger-bar.png" alt="menu" width="100%" />
+      </Button>
+    </div>
+  </div>
+);
+
+/* ======================
+   DESKTOP SIDEBAR
+   ====================== */
+const DesktopSidebar = ({
+  playerName,
+  playerStats,
+  currentTime,
+  activityMode,
+  getGreeting,
+  getBarColor,
+  musicVolume,
+  sfxVolume,
+  setMusicVolume,
+  setSfxVolume,
+}) => (
+  <div
+    className="d-none d-md-flex flex-column position-fixed start-0 top-0 h-100 p-3 shadow bg-white"
+    style={{ width: 260, zIndex: 1000 }}
+  >
+    <h6 className="mb-2">
+      {getGreeting()}, <strong>{playerName}</strong>
+    </h6>
+
+    <div className="mb-3 text-center">
+      <div className="fw-bold fs-5">{formatTime(currentTime)}</div>
+      {activityMode === "fastforward" && (
+        <small className="text-warning">⏩ Fast Forward</small>
+      )}
+    </div>
+
+    <div className="mb-3">
+      💎 <strong>{playerStats.money.toLocaleString("id-ID")}</strong>
+    </div>
+
+    {[
+      { icon: "🍴", val: playerStats.meal },
+      { icon: "🛏️", val: playerStats.sleep },
+      { icon: "😊", val: playerStats.happiness },
+      { icon: "🫧", val: playerStats.cleanliness },
+      { icon: "⛽", val: playerStats.fuel },
+    ].map((item, i) => (
+      <div key={i} className="mb-2">
+        <small>{item.icon}</small>
+        <div className="progress" style={{ height: 8 }}>
+          <div
+            className={`progress-bar ${getBarColor(item.val)}`}
+            style={{ width: `${item.val}%` }}
+          />
+        </div>
+      </div>
+    ))}
+
+    <div className="mt-3">
+      <small>🎵 Music</small>
+      <Form.Range
+        min={0}
+        max={1}
+        step={0.05}
+        value={musicVolume}
+        onChange={(e) => setMusicVolume(+e.target.value)}
+      />
+
+      <small className="d-block mt-2">🔔 SFX</small>
+      <Form.Range
+        min={0}
+        max={1}
+        step={0.05}
+        value={sfxVolume}
+        onChange={(e) => setSfxVolume(+e.target.value)}
+      />
+    </div>
+  </div>
+);
+
+/* ======================
+   HEADER BAR (MAIN)
+   ====================== */
 const HeaderBar = () => {
   const {
     playerStats,
     gameState,
     playerName,
     currentTime,
+    activityState,
     setIsBurgerMenuOpen,
   } = useGame();
 
@@ -18,157 +198,45 @@ const HeaderBar = () => {
   if (gameState !== "playing") return null;
 
   const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 17) return "Good Afternoon";
-    if (hour < 20) return "Good Evening";
+    const h = currentTime.getHours();
+    if (h < 12) return "Good Morning";
+    if (h < 17) return "Good Afternoon";
+    if (h < 20) return "Good Evening";
     return "Good Night";
   };
 
-  const getBarColor = (value) => {
-    if (value > 50) return "bg-success";
-    if (value > 25) return "bg-warning";
-    return "bg-danger";
-  };
-
-  const isMobile = window.innerWidth < 768;
+  const getBarColor = (v) =>
+    v > 50 ? "bg-success" : v > 25 ? "bg-warning" : "bg-danger";
 
   return (
-    <div
-      // FIX: Hapus position: fixed dan tambahkan mt-3 untuk jarak dari atas
-      className="mx-auto w-100 overflow-hidden shadow-lg p-3 mt-3 mb-3"
-      style={{
-        // HAPUS: position: "fixed", top, left, transform, zIndex
-        maxWidth: "1000px",
-        backgroundColor: "#fff",
-        borderRadius: "15px", // Desain modern tetap
-        border: "none",
-        // Menggunakan padding bawaan p-3 (15px) dan menyesuaikan width
-        width: isMobile ? "95%" : "auto",
-      }}
-    >
-      {/* ---------- TOP BAR (Greeting, Time, Money) ---------- */}
-      <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap border-bottom pb-2">
-        {/* Greeting & Name */}
-        <div className="text-truncate me-2 fs-6" style={{ maxWidth: "35%" }}>
-          {getGreeting()} <strong>{playerName}</strong>
-        </div>
+    <>
+      <MobileHeader
+        playerName={playerName}
+        playerStats={playerStats}
+        currentTime={currentTime}
+        activityMode={activityState?.mode}
+        getGreeting={getGreeting}
+        getBarColor={getBarColor}
+        musicVolume={musicVolume}
+        sfxVolume={sfxVolume}
+        setMusicVolume={setMusicVolume}
+        setSfxVolume={setSfxVolume}
+        setIsBurgerMenuOpen={setIsBurgerMenuOpen}
+      />
 
-        {/* Time */}
-        <div className="mx-1 fs-6 flex-shrink-0">
-          <strong>
-            {currentTime.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </strong>
-        </div>
-
-        {/* Money */}
-        <div className="d-flex align-items-center flex-shrink-0 ms-2 fs-6">
-          <span className="me-2">💰</span>
-          <strong>{playerStats.money.toLocaleString("id-ID")}</strong>
-        </div>
-      </div>
-
-      {/* ---------- STATS + SLIDERS ---------- */}
-      <div className="d-flex flex-wrap justify-content-start align-items-center">
-        <div className="row g-2 align-items-center w-100">
-          {/* Stats Bar (Col-9 on Desktop, Full Row on Mobile) */}
-          <div className="col-12 col-md-9">
-            <div className="row g-2">
-              {[
-                { icon: "🍴", val: playerStats.meal },
-                { icon: "🛏️", val: playerStats.sleep },
-                { icon: "😊", val: playerStats.happiness },
-                { icon: "🫧", val: playerStats.cleanliness },
-              ].map((item, i) => (
-                // Col-6 di mobile (2 baris), Col-md-3 di desktop (1 baris)
-                <div key={i} className="col-6 col-md-3">
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="fs-5 flex-shrink-0">{item.icon}</span>
-                    <div
-                      className="progress flex-grow-1"
-                      style={{ height: isMobile ? "6px" : "12px" }}
-                    >
-                      <div
-                        className={`progress-bar ${getBarColor(item.val)}`}
-                        style={{ width: `${item.val}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ---- Desktop Sliders (Col-3) ---- */}
-          <div className="d-none d-md-flex col-md-3 flex-column ps-4 border-start">
-            <div className="mb-1">
-              <small className="d-block">🎵 Music</small>
-              <Form.Range
-                min={0}
-                max={1}
-                step={0.05}
-                value={musicVolume}
-                onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
-              />
-            </div>
-            <div>
-              <small className="d-block">🔔 SFX</small>
-              <Form.Range
-                min={0}
-                max={1}
-                step={0.05}
-                value={sfxVolume}
-                onChange={(e) => setSfxVolume(parseFloat(e.target.value))}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ---- Mobile Sliders + Burger (Baris terpisah di bawah) ---- */}
-        <div className="d-flex d-md-none align-items-center justify-content-between gap-3 mt-3 w-100">
-          {/* Mobile Music Slider */}
-          <div className="flex-grow-1 text-center">
-            <small className="d-block">🎵 Music</small>
-            <Form.Range
-              min={0}
-              max={1}
-              step={0.05}
-              value={musicVolume}
-              onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
-            />
-          </div>
-
-          {/* Mobile SFX Slider */}
-          <div className="flex-grow-1 text-center">
-            <small className="d-block">🔔 SFX</small>
-            <Form.Range
-              min={0}
-              max={1}
-              step={0.05}
-              value={sfxVolume}
-              onChange={(e) => setSfxVolume(parseFloat(e.target.value))}
-            />
-          </div>
-
-          {/* Burger Button */}
-          <Button
-            className="cursor-target flex-shrink-0"
-            variant="light"
-            onClick={() => setIsBurgerMenuOpen(true)}
-            style={{ width: 38, height: 38, borderRadius: "50%" }}
-          >
-            <img
-              src="/burger-bar.png"
-              alt="Menu"
-              style={{ width: "100%", height: "100%" }}
-            />
-          </Button>
-        </div>
-      </div>
-    </div>
+      <DesktopSidebar
+        playerName={playerName}
+        playerStats={playerStats}
+        currentTime={currentTime}
+        activityMode={activityState?.mode}
+        getGreeting={getGreeting}
+        getBarColor={getBarColor}
+        musicVolume={musicVolume}
+        sfxVolume={sfxVolume}
+        setMusicVolume={setMusicVolume}
+        setSfxVolume={setSfxVolume}
+      />
+    </>
   );
 };
 

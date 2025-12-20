@@ -24,7 +24,7 @@ export const GameProvider = ({ children }) => {
   const [playerName, setPlayerName] = useState("");
   const [playerStats, setPlayerStats] = useState(initialStats);
   const [playerItems, setPlayerItems] = useState(initialItems);
-  const [currentArea, setCurrentArea] = useState("Home");
+  const [currentArea, setCurrentArea] = useState("Castle");
   const [specificLocation, setSpecificLocation] = useState(null);
   const [isGameOver, setIsGameOver] = useState(false);
   const [worldAreas, setWorldAreas] = useState(gameSpecificAreas);
@@ -47,7 +47,7 @@ export const GameProvider = ({ children }) => {
     mode: "normal",
     type: "activity",
   });
-  const [visitedAreas, setVisitedAreas] = useState(new Set(["Home"]));
+  const [visitedAreas, setVisitedAreas] = useState(new Set(["Castle"]));
   const [activitiesPerformed, setActivitiesPerformed] = useState(0);
 
   // --- Utility Functions ---
@@ -154,13 +154,31 @@ export const GameProvider = ({ children }) => {
   };
 
   const enterSpecificArea = (areaName) => {
-    if (gameAreas[areaName].specificArea) {
-      const specificAreaKey = `${areaName}Area`;
-      const firstLocation = Object.keys(
-        worldAreas[specificAreaKey].locations
-      )[0];
-      setSpecificLocation(firstLocation);
+    const areaConfig = gameAreas[areaName];
+    if (!areaConfig || !areaConfig.specificArea) {
+      console.warn("Area has no specific area:", areaName);
+      return;
     }
+
+    const specificAreaKey = areaConfig.specificArea;
+    const specificAreaData = worldAreas[specificAreaKey];
+
+    if (!specificAreaData || !specificAreaData.locations) {
+      console.error(
+        "Specific area data invalid:",
+        specificAreaKey,
+        specificAreaData
+      );
+      return;
+    }
+
+    const locations = Object.keys(specificAreaData.locations);
+    if (locations.length === 0) {
+      console.error("No locations defined in:", specificAreaKey);
+      return;
+    }
+
+    setSpecificLocation(locations[0]);
   };
 
   const moveSpecificLocation = (locationName) => {
@@ -217,21 +235,28 @@ export const GameProvider = ({ children }) => {
 
   const startActivity = (activityKey, mode = "normal") => {
     if (activityState.name) return;
+
     const definition = activityDefinitions[activityKey];
 
-    const hasRequiredItems = definition.requiredItems.every((itemReq) =>
-      playerItems.some((item) => item.id === itemReq && item.inInventory)
-    );
-    if (!hasRequiredItems) {
-      alert(
-        `You need ${definition.requiredItems.join(
-          ", "
-        )} to perform this activity!`
-      );
+    // 🔥 FIX UTAMA: VALIDASI DEFINITION
+    if (!definition) {
+      console.error("Activity definition not found:", activityKey);
+      alert(`Activity "${activityKey}" is not defined.`);
       return;
     }
 
-    let baseMoneyChange = definition.statChanges.money || 0;
+    const requiredItems = definition.requiredItems || [];
+
+    const hasRequiredItems = requiredItems.every((itemReq) =>
+      playerItems.some((item) => item.id === itemReq && item.inInventory)
+    );
+
+    if (!hasRequiredItems) {
+      alert(`You need ${requiredItems.join(", ")} to perform this activity!`);
+      return;
+    }
+
+    const baseMoneyChange = definition.statChanges?.money || 0;
     let moneyDeduction = 0;
 
     if (mode === "fastforward") {
@@ -241,19 +266,7 @@ export const GameProvider = ({ children }) => {
     const totalMoneyChange = baseMoneyChange + moneyDeduction;
 
     if (playerStats.money + totalMoneyChange < 0) {
-      alert(
-        `Not enough money! This action requires ${Math.abs(
-          totalMoneyChange
-        ).toLocaleString("id-ID")} (Base: ${Math.abs(
-          baseMoneyChange
-        ).toLocaleString("id-ID")} ${
-          mode === "fastforward"
-            ? `+ Fast Foward Mode Fee: ${FAST_FORWARD_FEE.toLocaleString(
-                "id-ID"
-              )}`
-            : ""
-        })`
-      );
+      alert("Not enough money!");
       return;
     }
 
@@ -262,28 +275,26 @@ export const GameProvider = ({ children }) => {
       progress: 0,
       totalTicks: definition.duration,
       currentTick: 0,
-      statChanges: definition.statChanges,
-      message: definition.message,
-      animation: definition.animation,
-      mode: mode,
+      statChanges: definition.statChanges || {},
+      message: definition.message || null,
+      animation: definition.animation || null,
+      mode,
       type: definition.type || "activity",
     });
 
+    // FAST FORWARD langsung selesai
     if (mode === "fastforward") {
-      const finalStatChanges = {
+      completeActivity(activityKey, {
         ...definition.statChanges,
         money: totalMoneyChange,
-      };
-      completeActivity(activityKey, finalStatChanges, totalMoneyChange);
+      });
 
       setCurrentTime(
         (prev) =>
           new Date(prev.getTime() + definition.duration * TIME_PER_TICK_MS)
       );
-    } else {
-      if (baseMoneyChange !== 0) {
-        updateStats({ money: baseMoneyChange });
-      }
+    } else if (baseMoneyChange !== 0) {
+      updateStats({ money: baseMoneyChange });
     }
   };
 

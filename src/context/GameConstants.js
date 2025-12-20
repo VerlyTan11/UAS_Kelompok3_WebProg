@@ -3,8 +3,9 @@ export const initialStats = {
   sleep: 50,
   happiness: 50,
   cleanliness: 50,
-  money: 250000,
-  lifeSatisfaction: 50, // New stat for scoring preview
+  money: 50000,
+  fuel: 100,
+  lifeSatisfaction: 50,
 };
 
 export const initialItems = [
@@ -19,15 +20,6 @@ export const initialItems = [
     onlyUsableIn: "Lake",
   },
   {
-    id: "broken_apple",
-    name: "Broken Apple",
-    icon: "🍎",
-    usable: true,
-    inInventory: true,
-    type: "consumable", // <--- sekali pakai
-    effect: { meal: 15, sleep: -5 },
-  },
-  {
     id: "shell",
     name: "Sea Shell",
     icon: "🐚",
@@ -39,322 +31,333 @@ export const initialItems = [
 
 // Area connections for movement
 export const gameAreas = {
-  Home: {
-    up: "Lake",
-    down: "Lake",
-    left: "Beach",
-    right: "Beach",
-    bg: "home.jpg",
-    specificArea: "HomeArea",
-  },
-  Beach: {
-    up: "Mountain",
-    down: "Mountain",
-    left: "Temple",
-    right: "Home",
-    bg: "beach.jpg",
-    specificArea: "BeachArea",
-  },
-  Temple: {
-    up: "Home",
-    down: "Lake",
-    left: "Lake",
-    right: "Mountain",
-    bg: "temple.jpg",
-    specificArea: "TempleArea",
-  },
-  Lake: {
-    up: "Home",
-    down: "Home",
-    left: "Mountain",
-    right: "Temple",
-    bg: "lake.jpg",
-    specificArea: "LakeArea",
-  },
-  Mountain: {
-    up: "Beach",
-    down: "Beach",
-    left: "Temple",
-    right: "Lake  ",
-    bg: "mount.jpg",
-    specificArea: "MountainArea",
-  },
+  Castle: {
+    up: "Cave",
+    down: "Cave",
+    left: "Mercusuar",
+    right: "Mercusuar",
+    bg: "map.jpg",
+    specificArea: "CastleArea",
+    icon: "castle.png",
+  }, //
+  Cave: {
+    up: "Castle",
+    down: "Castle",
+    left: "Island",
+    right: "Island",
+    bg: "map.jpg",
+    specificArea: "CaveArea",
+    icon: "cave.png",
+  }, //
+  Mercusuar: {
+    up: "Island",
+    down: "Island",
+    left: "Castle",
+    right: "Castle",
+    bg: "map.jpg",
+    specificArea: "MercusuarArea",
+    icon: "lighthouse.png",
+  }, //
+  Island: {
+    up: "Mercusuar",
+    down: "Mercusuar",
+    left: "Cave",
+    right: "Cave",
+    bg: "map.jpg",
+    specificArea: "IslandArea",
+    icon: "treasure.png",
+  }, //
 };
 
-// Definisi semua aktivitas di semua area spesifik
 export const activityDefinitions = {
-  // Beach Activities
-  "Sands Area - PLAY SANDS": {
+  // --- CASTLE (TOWN & SUPERMARKET) ---
+  "Town - STROLL AROUND": {
     duration: 3,
-    statChanges: { happiness: 20, cleanliness: -10, lifeSatisfaction: 5 },
-    message: "Playing in the sands... fun!",
-    requiredItems: [],
-    animation: "🏖️",
+    statChanges: { happiness: 15, fuel: -5 },
+    message: "Berjalan-jalan di pelabuhan bajak laut...",
+    animation: "🚶",
     type: "activity",
+    requiredItems: [],
   },
-  "Sands Area - SUNBATHING": {
-    duration: 5,
-    statChanges: {
-      sleep: 15,
-      happiness: 5,
-      cleanliness: -5,
-      lifeSatisfaction: 2,
+
+  "Town - TRADE GOODS": {
+    duration: 2,
+    statChanges: { money: 15000, sleep: -5 },
+    message: "Berdagang hasil jarahan dengan penduduk lokal...",
+    animation: "🤝",
+    type: "activity",
+    requiredItems: [],
+  },
+
+  "Supermarket - BUY FISHING NET": {
+    duration: 1,
+    statChanges: { money: -5000 },
+    message: "Membeli jaring ikan baru...",
+    type: "purchase",
+    requiredItems: [],
+    itemAcquired: {
+      id: "net",
+      name: "Fishing Net",
+      icon: "🕸️",
+      type: "tool",
+      inInventory: true,
     },
-    message: "Basking in the sun...",
-    requiredItems: [],
-    animation: "☀️",
-    type: "activity",
+    animation: "💰",
   },
-  "Sands Area - SIGHTSEEING": {
-    duration: 2,
-    statChanges: { happiness: 10, meal: -5, lifeSatisfaction: 1 },
-    message: "Enjoying the view...",
-    requiredItems: [],
-    animation: "👀",
-    type: "activity",
-  },
-  "Shop Area - BUY COCONUT": {
+
+  "Supermarket - BUY SURFBOARD": {
     duration: 1,
-    statChanges: { meal: 10, money: -5000 },
-    message: "Buying a fresh coconut...",
-    requiredItems: [],
+    statChanges: { money: -15000 },
+    message: "Membeli papan selancar kayu...",
     type: "purchase",
-    itemAcquired: null,
-    animation: "🥥",
-  },
-  "Shop Area - BUY SOUVENIR": {
-    duration: 2,
-    statChanges: { happiness: 5, money: -15000, lifeSatisfaction: 2 },
-    message: "Buying a souvenir...",
     requiredItems: [],
-    type: "purchase",
-    itemAcquired: null,
-    animation: "🛍️",
-  },
-  "Shop Area - BUY SURFBOARD": {
-    duration: 1,
-    statChanges: { money: -50000, lifeSatisfaction: 5 },
-    message: "Buying a new surfboard...",
-    requiredItems: [],
-    type: "purchase",
     itemAcquired: {
       id: "surfboard",
       name: "Surfboard",
       icon: "🏄",
-      isEquipped: false,
+      type: "tool",
       inInventory: true,
-      type: "gear",
-      effect: {},
-      usable: true,
     },
-    animation: "💸",
+    animation: "💰",
   },
-  "Sea Area - SWIMMING": {
-    duration: 4,
-    statChanges: { cleanliness: 20, sleep: -10, lifeSatisfaction: 5 },
-    message: "Swimming in the refreshing water...",
+
+  "Supermarket - BUY RICE": {
+    duration: 1,
+    statChanges: { money: -2000 },
+    message: "Membeli persediaan beras...",
+    type: "purchase",
     requiredItems: [],
-    animation: "🏊",
+    itemAcquired: {
+      id: "rice",
+      name: "Rice",
+      icon: "🍚",
+      type: "consumable",
+      effect: { meal: 30 },
+      inInventory: true,
+    },
+    animation: "💰",
+  },
+
+  "ThroneRoom - MEET KING": {
+    duration: 3,
+    statChanges: {
+      happiness: 10,
+      lifeSatisfaction: 15,
+    },
+    message: "Menghadap Raja Bajak Laut di singgasana...",
+    animation: "👑",
     type: "activity",
   },
-  "Sea Area - SURFING": {
-    duration: 6,
-    statChanges: { happiness: 30, sleep: -10, meal: -5, lifeSatisfaction: 10 },
-    message: "Riding the waves!",
+
+  "ThroneRoom - REST": {
+    duration: 4,
+    statChanges: { sleep: 40, happiness: 5 },
+    message: "Beristirahat sejenak di kursi tamu kerajaan...",
+    animation: "😴",
+    type: "activity",
+  },
+
+  // --- CAVE ---
+  "Tunnel - EXPLORE CAVE": {
+    duration: 5,
+    statChanges: { happiness: 10, fuel: -10, sleep: -10 },
+    message: "Menjelajahi lorong gua yang gelap...",
+    animation: "🔦",
+    type: "activity",
+  },
+  "Tunnel - DECODE WALL": {
+    duration: 4,
+    statChanges: { lifeSatisfaction: 5, sleep: -10 },
+    message: "Membaca simbol kuno di dinding gua...",
+    animation: "📜",
+    type: "activity",
+  },
+
+  // --- MERCUSUAR ---
+  "Refuel - FILL FUEL": {
+    duration: 2,
+    statChanges: { money: -10000, fuel: 50 },
+    message: "Mengisi ulang bahan bakar kapal...",
+    animation: "⛽",
+    type: "activity",
+    requiredItems: [],
+  },
+
+  "Refuel - CLEAN SHIP": {
+    duration: 3,
+    statChanges: { cleanliness: 40, happiness: 5 },
+    message: "Membersihkan dek kapal dari kerang...",
+    animation: "🧹",
+    type: "activity",
+    requiredItems: [],
+  },
+
+  "Top - OBSERVE SEA": {
+    duration: 2,
+    statChanges: { happiness: 10, lifeSatisfaction: 5 },
+    message: "Melihat samudera luas dari puncak mercusuar...",
+    animation: "🔭",
+    type: "activity",
+  },
+
+  // --- ISLAND (BEACH & Jungle) ---
+  "Beach - SURFING": {
+    duration: 4,
+    statChanges: { happiness: 25, fuel: -5 },
+    message: "Menaklukan ombak besar!",
     requiredItems: ["surfboard"],
     animation: "🌊",
     type: "activity",
   },
-  "Hotel - CHECK-IN": {
-    duration: 2,
-    statChanges: { sleep: 20, cleanliness: 10, lifeSatisfaction: 5 },
-    message: "Checking into the hotel...",
-    requiredItems: [],
-    animation: "🏨",
-    type: "activity",
-  },
-  // Home Activities
-  "Kitchen - EAT": {
-    duration: 2,
-    statChanges: { meal: 50, money: -1000 },
-    message: "Eating a hearty meal...",
-    requiredItems: [],
-    animation: "🍽️",
-    type: "activity",
-  },
-  "Bedroom - SLEEP": {
+
+  "Beach - FISHING": {
     duration: 5,
-    statChanges: { sleep: 50, cleanliness: -10 },
-    message: "Getting some rest...",
-    requiredItems: [],
-    animation: "😴",
-    type: "activity",
-  },
-  "Bathroom - CLEAN UP": {
-    duration: 3,
-    statChanges: { cleanliness: 50 },
-    message: "Cleaning up...",
-    requiredItems: [],
-    animation: "🧼",
-    type: "activity",
-  },
-  // Other Areas
-  "Praying Area - MEDITATE": {
-    duration: 8,
-    statChanges: { happiness: 20, sleep: 10, meal: -10, lifeSatisfaction: 15 },
-    message: "Meditating in the silent temple...",
-    requiredItems: [],
-    animation: "🧘",
-    type: "activity",
-  },
-  "Fishing Spot - FISHING": {
-    duration: 5,
-    statChanges: { meal: 20, happiness: 5, cleanliness: -5 },
-    message: "Fishing in the quiet lake...",
-    requiredItems: ["fishing_rod"],
+    statChanges: { meal: 20, money: 2000 },
+    message: "Memancing ikan di tepi pantai...",
+    requiredItems: ["net"],
     animation: "🎣",
     type: "activity",
   },
-  "Trailhead - HIKING": {
-    duration: 10,
+
+  "Beach - FIND BOTTLE": {
+    duration: 2,
+    statChanges: { happiness: 10 },
+    message: "Mencari botol hanyut di pesisir...",
+    animation: "🍾",
+    type: "activity",
+    requiredItems: [],
+  },
+
+  "Beach - EXPLORE BEACH": {
+    duration: 4,
+    statChanges: { happiness: 20, fuel: -5 },
+    message: "Menjelajahi pantai berpasir putih...",
+    animation: "🏖️",
+    type: "activity",
+  },
+  "Beach - COLLECT SHELL": {
+    duration: 1,
+    statChanges: { happiness: 5 },
+    message: "Mencari kerang cantik di pasir...",
+    animation: "🐚",
+    type: "activity",
+  },
+
+  "Jungle - EXPLORE JUNGLE": {
+    duration: 6,
     statChanges: {
-      sleep: -20,
-      meal: -20,
-      happiness: 40,
-      cleanliness: -10,
+      happiness: 30,
+      money: 50000,
       lifeSatisfaction: 20,
     },
-    message: "Hiking to the mountain top!",
-    requiredItems: [],
-    animation: "⛰️",
+    message: "Menjelajahi rimba pulau dan menemukan harta karun!",
+    animation: "🌴",
     type: "activity",
+  },
+
+  "Jungle - REST IN HAMMOCK": {
+    duration: 4,
+    statChanges: { sleep: 40, happiness: 10 },
+    message: "Tidur sejenak di bawah pohon kelapa...",
+    animation: "😴",
+    type: "activity",
+    requiredItems: [],
   },
 };
 
 // Struktur Area Spesifik (dengan koneksi arah baru untuk navigasi keyboard/panah)
 export const gameSpecificAreas = {
-  BeachArea: {
-    name: "Beach",
-    bg: "beach.jpg",
+  IslandArea: {
+    name: "Island",
+    bg: "island.jpg",
     locations: {
-      "Sands Area": {
-        activities: ["PLAY SANDS", "SUNBATHING", "SIGHTSEEING"],
-        right: "Hotel",
-        down: "Shop Area",
-        up: "Exit", // Move to exit area
-      },
-      "Shop Area": {
-        activities: ["BUY COCONUT", "BUY SOUVENIR", "BUY SURFBOARD"],
-        up: "Sands Area",
-        right: "Sea Area",
-        left: "Exit",
-      },
-      "Sea Area": {
-        activities: ["SWIMMING", "SURFING"],
+      Beach: {
+        activities: [
+          "SURFING",
+          "FISHING",
+          "FIND BOTTLE",
+          "EXPLORE BEACH",
+          "COLLECT SHELL",
+        ],
         items: ["shell"],
-        left: "Shop Area",
-        up: "Hotel",
+        right: "Jungle",
         down: "Exit",
       },
-      Hotel: {
-        activities: ["CHECK-IN"],
-        left: "Sands Area",
-        down: "Sea Area",
-        right: "Exit",
+      Jungle: {
+        activities: ["EXPLORE JUNGLE", "REST IN HAMMOCK"],
+        left: "Beach",
+        down: "Exit",
       },
       Exit: {
         activities: ["GO BACK"],
-        up: "Sands Area",
-        down: "Sea Area",
-        left: "Shop Area",
-        right: "Hotel",
+        up: "Beach",
+        right: "Jungle",
       },
     },
   },
-  HomeArea: {
-    name: "Home",
-    bg: "home.jpg",
+
+  CaveArea: {
+    name: "Cave",
+    bg: "cave.jpg",
     locations: {
-      Kitchen: { activities: ["EAT"], right: "Bedroom", down: "Bathroom" },
-      Bedroom: {
-        activities: ["SLEEP"],
-        left: "Kitchen",
-        down: "Bathroom",
-        up: "Exit",
-      },
-      Bathroom: {
-        activities: ["CLEAN UP"],
-        up: "Kitchen",
-        right: "Bedroom",
-        left: "Exit",
-      },
-      Exit: {
-        activities: ["GO BACK"],
-        up: "Kitchen",
-        right: "Bathroom",
-        down: "Bedroom",
-        left: "Bedroom",
-      }, // Can exit from any direction back to a room
-    },
-  },
-  TempleArea: {
-    name: "Temple",
-    bg: "temple.jpg",
-    locations: {
-      "Praying Area": {
-        activities: ["MEDITATE"],
+      Tunnel: {
+        activities: ["EXPLORE CAVE", "DECODE WALL"],
         down: "Exit",
-        up: "Exit",
-        left: "Exit",
-        right: "Exit",
       },
       Exit: {
         activities: ["GO BACK"],
-        up: "Praying Area",
-        down: "Praying Area",
-        left: "Praying Area",
-        right: "Praying Area",
+        up: "Tunnel",
       },
     },
   },
-  LakeArea: {
-    name: "Lake",
-    bg: "lake.jpg",
+
+  CastleArea: {
+    name: "Castle",
+    bg: "castle.jpg",
     locations: {
-      "Fishing Spot": {
-        activities: ["FISHING"],
-        items: ["fishing_rod"],
+      Town: {
+        activities: ["STROLL AROUND", "TRADE GOODS"],
+        right: "Supermarket",
         down: "Exit",
-        up: "Exit",
-        left: "Exit",
-        right: "Exit",
+      },
+      Supermarket: {
+        activities: ["BUY FISHING NET", "BUY SURFBOARD", "BUY RICE"],
+        left: "Town",
+        right: "ThroneRoom",
+        down: "Exit",
+      },
+      ThroneRoom: {
+        activities: ["MEET KING", "REST"],
+        left: "Supermarket",
+        down: "Exit",
       },
       Exit: {
         activities: ["GO BACK"],
-        up: "Fishing Spot",
-        down: "Fishing Spot",
-        left: "Fishing Spot",
-        right: "Fishing Spot",
+        up: "Supermarket",
+        left: "Town",
+        right: "ThroneRoom",
       },
     },
   },
-  MountainArea: {
-    name: "Mountain",
-    bg: "mount.jpg",
+
+  MercusuarArea: {
+    name: "Mercusuar",
+    bg: "lighthouse.jpg",
     locations: {
-      Trailhead: {
-        activities: ["HIKING"],
+      Refuel: {
+        activities: ["FILL FUEL", "CLEAN SHIP"],
+        right: "Top",
         down: "Exit",
-        up: "Exit",
-        left: "Exit",
-        right: "Exit",
+      },
+      Top: {
+        activities: ["OBSERVE SEA"],
+        left: "Refuel",
+        down: "Exit",
       },
       Exit: {
         activities: ["GO BACK"],
-        up: "Trailhead",
-        down: "Trailhead",
-        left: "Trailhead",
-        right: "Trailhead",
+        up: "Top",
+        left: "Refuel",
       },
     },
   },
