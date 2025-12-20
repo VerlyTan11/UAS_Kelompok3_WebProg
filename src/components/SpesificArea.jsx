@@ -185,13 +185,13 @@ const SpecificArea = () => {
 
   if (currentArea === "Island") {
     positions = {
-      Beach: { top: "25%", left: "15%" },
+      Beach: { top: "25%", left: "35%" },
       Jungle: { top: "25%", left: "75%" },
       Exit: { top: "70%", left: "45%" },
     };
   } else if (currentArea === "Castle") {
     positions = {
-      Town: { top: "25%", left: "10%" },
+      Town: { top: "25%", left: "20%" },
       Supermarket: { top: "25%", left: "45%" },
       ThroneRoom: { top: "25%", left: "80%" },
       Exit: { top: "70%", left: "45%" },
@@ -203,7 +203,7 @@ const SpecificArea = () => {
     };
   } else if (currentArea === "Mercusuar") {
     positions = {
-      Refuel: { top: "30%", left: "20%" },
+      Refuel: { top: "30%", left: "25%" },
       Top: { top: "30%", left: "70%" },
       Exit: { top: "70%", left: "45%" },
     };
@@ -222,22 +222,16 @@ const SpecificArea = () => {
   const getAreaStyle = (locationName) => ({
     ...positions[locationName],
     position: "absolute",
-    width: "100px",
-    height: "100px",
-    borderRadius: "50%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
+    width: "40px",
+    height: "40px",
+    backgroundImage: "url(../../../../public/pin.png)",
+    backgroundSize: "contain",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
     cursor: "pointer",
-    border:
-      locationName === specificLocation ? "3px solid blue" : "1px solid black",
-    backgroundColor: "#eee",
-    padding: "5px",
-    textAlign: "center",
-    // Blur areas when activity or modal is ongoing (termasuk modal baru)
+    transform: locationName === specificLocation ? "scale(1.2)" : "scale(1)",
+    transition: "transform 0.2s ease",
     opacity: activityState.name || confirmFF || showActivityModal ? 0.5 : 1,
-    // Disable clicks when activity or modal is ongoing (termasuk modal baru)
     pointerEvents:
       activityState.name || confirmFF || showActivityModal ? "none" : "auto",
   });
@@ -305,6 +299,34 @@ const SpecificArea = () => {
     (loc) => positions[loc]
   );
 
+  const getBackgroundImage = () => {
+    if (!specificLocation) return "";
+
+    if (currentArea === "Island") {
+      if (specificLocation === "Beach")
+        return "/assets/backgrounds/island-beach.jpg";
+      if (specificLocation === "Jungle")
+        return "/assets/backgrounds/island-jungle.jpg";
+    }
+
+    if (currentArea === "Castle") {
+      if (specificLocation === "Town")
+        return "/assets/backgrounds/castle-town.jpg";
+      if (specificLocation === "ThroneRoom")
+        return "/assets/backgrounds/castle-throne.jpg";
+    }
+
+    if (currentArea === "Cave") {
+      return "/assets/backgrounds/cave.jpg";
+    }
+
+    if (currentArea === "Mercusuar") {
+      return "/assets/backgrounds/lighthouse.jpg";
+    }
+
+    return "";
+  };
+
   return (
     <div
       className="d-flex flex-column flex-grow-1 position-relative"
@@ -316,7 +338,16 @@ const SpecificArea = () => {
           {specificLocation || "No Location"})
         </small>
       </div>
-      <div style={{ position: "relative", flexGrow: 1 }}>
+      <div
+        style={{
+          position: "relative",
+          flexGrow: 1,
+          backgroundImage: `url(${getBackgroundImage()})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          transition: "background-image 0.4s ease-in-out",
+        }}
+      >
         {/* Activity Selection Modal (BARU) */}
         <ActivitySelectionModal
           show={showActivityModal}
@@ -368,7 +399,21 @@ const SpecificArea = () => {
             onClick={() => moveAndShowActivity(locationName)}
             className="shadow-sm cursor-target"
           >
-            <span className="text-dark">
+            <span
+              style={{
+                position: "absolute",
+                top: "42px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                padding: "2px 6px",
+                fontSize: "11px",
+                color: "#fff",
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                borderRadius: "6px",
+                whiteSpace: "nowrap",
+                pointerEvents: "none",
+              }}
+            >
               {locationName
                 .replace(" (for going back)", "")
                 .replace(" Area", "")
@@ -381,12 +426,12 @@ const SpecificArea = () => {
               <div
                 style={{
                   position: "absolute",
-                  top: "-15px",
-                  left: "-15px",
-                  fontSize: "30px",
+                  top: "-25px",
+                  left: "-10px",
+                  fontSize: "26px",
                 }}
               >
-                🧍
+                🏴‍☠️
               </div>
             )}
           </div>
