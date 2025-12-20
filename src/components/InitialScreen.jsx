@@ -64,7 +64,7 @@ const InitialScreen = () => {
                 style={{ width: "13%", marginBottom: "10px" }}
               />
               <br />
-              UMN - Ucup Exploring the Archipelago
+              Ucup Exploring the Archipelago
             </h3>
           </div>
 
@@ -154,7 +154,10 @@ const InitialScreen = () => {
         </Modal.Header>
         <Modal.Body style={{ fontSize: "1rem", lineHeight: "1.5" }}>
           <ul>
-            <li>⚠ Maintain hunger, sleep, happiness, and cleanliness.</li>
+            <li>
+              ⚠ Maintain hunger, sleep, happiness, cleanliness and fuel of your
+              ship.
+            </li>
             <li>🗺 Explore areas and unlock activities.</li>
             <li>
               🎒 Some items are single–use, some only work in specific areas and
