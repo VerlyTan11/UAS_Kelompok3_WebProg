@@ -7,66 +7,61 @@ export default function useGameAudio(gameState) {
   const [musicVolume, setMusicVolume] = useState(0.5);
   const [sfxVolume, setSfxVolume] = useState(0.6);
 
-  // load audio once
+  // === INIT AUDIO (ONCE) ===
   useEffect(() => {
-    // Menggunakan path absolut untuk deployment
     clickSoundRef.current = new Audio("/click.mp3");
     clickSoundRef.current.volume = sfxVolume;
 
     backgroundMusicRef.current = new Audio("/backsound.mp3");
     backgroundMusicRef.current.loop = true;
     backgroundMusicRef.current.volume = musicVolume;
+
+    return () => {
+      // cleanup
+      backgroundMusicRef.current?.pause();
+      backgroundMusicRef.current = null;
+      clickSoundRef.current = null;
+    };
   }, []);
 
-  // controlled volume update
+  // === REAL-TIME VOLUME CONTROL ===
   useEffect(() => {
-    // SFX Volume Control
     if (clickSoundRef.current) {
       clickSoundRef.current.volume = sfxVolume;
     }
 
-    // Music Volume Control
     if (backgroundMusicRef.current) {
-      // Atur volume terlebih dahulu
       backgroundMusicRef.current.volume = musicVolume;
 
-      // Jika volume disetel ke 0, pause secara eksplisit
+      // mute logic
       if (musicVolume === 0) {
         backgroundMusicRef.current.pause();
-      }
-      // Jika volume > 0 dan game sedang bermain, pastikan musik diputar ulang (jika sebelumnya di-pause)
-      else if (musicVolume > 0 && gameState === "playing") {
-        // Kita tidak memanggil load() di sini untuk menghindari re-load yang konstan
-        // Hanya play() jika sudah diputar (atau sebelumnya di-pause karena volume 0)
-        if (backgroundMusicRef.current.paused) {
-          backgroundMusicRef.current.play().catch(() => {});
-        }
+      } else if (gameState === "playing" && backgroundMusicRef.current.paused) {
+        backgroundMusicRef.current.play().catch(() => {});
       }
     }
-  }, [musicVolume, sfxVolume, gameState]); // Tambahkan gameState ke dependency
+  }, [musicVolume, sfxVolume, gameState]);
 
-  // this MUST be wrapped in useCallback
+  // === CLICK SFX ===
   const playClick = useCallback(() => {
-    if (!clickSoundRef.current || sfxVolume === 0) return; // Mencegah play jika SFX 0
+    if (!clickSoundRef.current || sfxVolume === 0) return;
+
     clickSoundRef.current.currentTime = 0;
     clickSoundRef.current.play().catch(() => {});
-  }, [sfxVolume]); // Tambahkan sfxVolume ke dependency playClick
+  }, [sfxVolume]);
 
-  // autoplay when game starts
+  // === GAME STATE CONTROL ===
   useEffect(() => {
-    if (backgroundMusicRef.current) {
-      if (gameState === "playing") {
-        // Jika volume musik di atas 0, mainkan
-        if (musicVolume > 0) {
-          backgroundMusicRef.current.load(); // Load untuk memastikan file siap diputar
-          backgroundMusicRef.current.play().catch(() => {});
-        }
-      } else {
-        // Hentikan musik saat berpindah dari halaman game
-        backgroundMusicRef.current.pause();
+    if (!backgroundMusicRef.current) return;
+
+    if (gameState === "playing") {
+      if (musicVolume > 0 && backgroundMusicRef.current.paused) {
+        backgroundMusicRef.current.play().catch(() => {});
       }
+    } else {
+      backgroundMusicRef.current.pause();
     }
-  }, [gameState, musicVolume]); // Tambahkan musicVolume ke dependency
+  }, [gameState, musicVolume]);
 
   return {
     playClick,
