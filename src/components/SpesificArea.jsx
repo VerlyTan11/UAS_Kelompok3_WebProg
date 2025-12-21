@@ -191,7 +191,7 @@ const SpecificArea = () => {
     };
   } else if (currentArea === "Castle") {
     positions = {
-      Town: { top: "25%", left: "20%" },
+      Town: { top: "25%", left: "30%" },
       Supermarket: { top: "25%", left: "45%" },
       ThroneRoom: { top: "25%", left: "80%" },
       Exit: { top: "60%", left: "45%" },
@@ -443,7 +443,7 @@ const SpecificArea = () => {
               className="position-absolute p-2 shadow"
               style={{
                 bottom: "20px",
-                left: "150px",
+                left: "750px",
                 width: "150px",
                 zIndex: 11,
               }}

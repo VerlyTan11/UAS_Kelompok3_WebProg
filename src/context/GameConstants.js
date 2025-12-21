@@ -17,7 +17,7 @@ export const initialItems = [
     inInventory: false,
     type: "tool", // <--- kalau tool: repeat use
     effect: { meal: 10 },
-    onlyUsableIn: "Lake",
+    onlyUsableIn: "Beach",
   },
   {
     id: "shell",

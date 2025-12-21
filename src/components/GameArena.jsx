@@ -113,13 +113,14 @@ const GameArena = () => {
     maxHeight: "90vh",
     width: "100%",
     maxWidth: "1200px",
-    margin: isMobile ? "0 auto" : "0 auto 0 150px",
+    margin: isMobile ? "0 auto" : "0 auto 0 35px",
     backgroundImage: `url(/${areaData.bg})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     position: "relative",
     boxShadow: "0 0 10px rgba(0,0,0,0.5)",
     opacity: activityState.name ? 0.8 : 1,
+    scrollX: "none",
   };
 
   /* ===================== */
