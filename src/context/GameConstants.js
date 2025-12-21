@@ -73,7 +73,7 @@ export const activityDefinitions = {
   // --- CASTLE (TOWN & SUPERMARKET) ---
   "Town - STROLL AROUND": {
     duration: 3,
-    statChanges: { happiness: 15, fuel: -5 },
+    statChanges: { happiness: 15, fuel: -10, sleep: -10, cleanliness: -10 },
     message: "Berjalan-jalan di pelabuhan bajak laut...",
     animation: "🚶",
     type: "activity",
@@ -143,6 +143,7 @@ export const activityDefinitions = {
     statChanges: {
       happiness: 10,
       lifeSatisfaction: 15,
+      fuel: -10,
     },
     message: "Menghadap Raja Bajak Laut di singgasana...",
     animation: "👑",
@@ -176,7 +177,7 @@ export const activityDefinitions = {
   // --- MERCUSUAR ---
   "Refuel - FILL FUEL": {
     duration: 2,
-    statChanges: { money: -10000, fuel: 50 },
+    statChanges: { money: -10000, fuel: 50, cleanliness: -5 },
     message: "Mengisi ulang bahan bakar kapal...",
     animation: "⛽",
     type: "activity",
@@ -185,7 +186,7 @@ export const activityDefinitions = {
 
   "Refuel - CLEAN SHIP": {
     duration: 3,
-    statChanges: { cleanliness: 40, happiness: 5 },
+    statChanges: { cleanliness: 40, happiness: 5, sleep: -5 },
     message: "Membersihkan dek kapal dari kerang...",
     animation: "🧹",
     type: "activity",
@@ -203,7 +204,7 @@ export const activityDefinitions = {
   // --- ISLAND (BEACH & Jungle) ---
   "Beach - SURFING": {
     duration: 4,
-    statChanges: { happiness: 25, fuel: -5 },
+    statChanges: { happiness: 25, fuel: -10 },
     message: "Menaklukan ombak besar!",
     requiredItems: ["surfboard"],
     animation: "🌊",
@@ -221,7 +222,7 @@ export const activityDefinitions = {
 
   "Beach - FIND BOTTLE": {
     duration: 2,
-    statChanges: { happiness: 10 },
+    statChanges: { happiness: 10, meal: -5 },
     message: "Mencari botol hanyut di pesisir...",
     animation: "🍾",
     type: "activity",
@@ -230,7 +231,7 @@ export const activityDefinitions = {
 
   "Beach - EXPLORE BEACH": {
     duration: 4,
-    statChanges: { happiness: 20, fuel: -5 },
+    statChanges: { happiness: 20, fuel: -10, meal: -5 },
     message: "Menjelajahi pantai berpasir putih...",
     animation: "🏖️",
     type: "activity",
