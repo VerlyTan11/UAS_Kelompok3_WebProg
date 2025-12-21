@@ -64,7 +64,7 @@ const InitialScreen = () => {
                 style={{ width: "13%", marginBottom: "10px" }}
               />
               <br />
-              Ucup Exploring the Archipelago
+              Pirate Adventure Game
             </h3>
           </div>
 
@@ -171,7 +171,7 @@ const InitialScreen = () => {
           </ul>
 
           <p className="fw-bold text-center mt-3">
-            Are you ready to explore Indonesia with Ucup? 🌍
+            Are you ready to explore, Kapten? 🌍
           </p>
         </Modal.Body>
 
