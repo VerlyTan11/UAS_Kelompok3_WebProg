@@ -436,14 +436,15 @@ const SpecificArea = () => {
         {/* COLLECTIBLE ITEM DISPLAY */}
         {locations[specificLocation]?.items?.map((itemId) => {
           const item = playerItems.find((i) => i.id === itemId);
+          const isMobile = window.innerWidth < 768;
 
           return (
             <Card
               key={itemId}
               className="position-absolute p-2 shadow"
               style={{
-                bottom: "20px",
-                left: "750px",
+                bottom: isMobile ? "5px" : "20px",
+                left: isMobile ? "250px" : "750px",
                 width: "150px",
                 zIndex: 11,
               }}
