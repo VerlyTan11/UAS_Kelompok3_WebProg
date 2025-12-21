@@ -247,7 +247,6 @@ export const activityDefinitions = {
     duration: 6,
     statChanges: {
       happiness: 30,
-      money: 50000,
       lifeSatisfaction: 20,
     },
     message: "Menjelajahi rimba pulau dan menemukan harta karun!",

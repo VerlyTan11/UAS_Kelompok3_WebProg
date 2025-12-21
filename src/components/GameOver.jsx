@@ -3,6 +3,7 @@ import { useGame } from "../context/useGame";
 
 const GameOver = () => {
   const { playerStats, calculateFinalScore } = useGame();
+  const { resetGame } = useGame();
 
   // Calculate final score when game over screen mounts
   const finalScore = useMemo(
@@ -54,7 +55,7 @@ const GameOver = () => {
 
       <button
         className="btn btn-primary mt-3 cursor-target w-75" // w-75 untuk responsif
-        onClick={() => window.location.reload()}
+        onClick={resetGame}
       >
         Restart Game
       </button>
